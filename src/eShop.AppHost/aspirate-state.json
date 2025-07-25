@@ -1,0 +1,72 @@
+{
+  "projectPath": ".",
+  "inputPath": "aspirate-output",
+  "outputPath": "aspirate-output",
+  "containerImageTags": [
+    "latest"
+  ],
+  "imagePullPolicy": "IfNotPresent",
+  "containerBuilder": "docker",
+  "kubeContext": "minikube",
+  "outputFormat": "kustomize",
+  "skipFinalKustomizeGeneration": false,
+  "privateRegistryEmail": "aspir8@aka.ms",
+  "includeDashboard": true,
+  "useCustomNamespace": false,
+  "secrets": {
+    "salt": "JKVAi8i7oCdAJnuH",
+    "hash": "VRnE7e5KlpGv42/B75/mgR0t6bjSYaUBb0seMGdf2Mc=",
+    "secrets": {
+      "redis-password": {
+        "value": "JKVAi8i7oCdAJnuH7sGLpHtHTDki3aNI8b\u002BzGJ3Ujz062y0SH3wORoTkBTI7BfKevh0="
+      },
+      "eventbus-password": {
+        "value": "JKVAi8i7oCdAJnuHmI7xSHhn28ktprbxE2uQKZn2gxQC6Ww5Jyx7DoDvFktIXfGmk3Q="
+      },
+      "postgres-password": {
+        "value": "JKVAi8i7oCdAJnuHK\u002BsO\u002BrFOXRshWsSRRuusMrSski14/jdQLjV3eJWTFggVXr2\u002Bjhc="
+      },
+      "redis": {},
+      "eventbus": {},
+      "postgres": {
+        "POSTGRES_PASSWORD": "JKVAi8i7oCdAJnuHK\u002BsO\u002BrFOXRshWsSRRuusMrSski14/jdQLjV3eJWTFggVXr2\u002Bjhc="
+      },
+      "catalogdb": {},
+      "identitydb": {},
+      "orderingdb": {},
+      "webhooksdb": {},
+      "identity-api": {
+        "ConnectionStrings__identitydb": "JKVAi8i7oCdAJnuHE/rsYWeSITvNrXkYTfPhIJDylQ9x\u002BDESOChKSpLsDBYMQ/rA4hZ0LN7itYrJhk4DsXFu5AHFdXBNNzA1yC9nMlj143V1a7W7INtaOMSjlPEKr17yKi2uOGLyl137At2bOGHfJIF5NpN8xgZINA=="
+      },
+      "basket-api": {
+        "ConnectionStrings__redis": "JKVAi8i7oCdAJnuHP0uMTEL8\u002BuXGqCNCCH5JVar4ghI/smhSe3YUX4CkLw4RRaPIk2wvUf3Co4v01BUP6TJY3DCQMn5WNA==",
+        "ConnectionStrings__eventbus": "JKVAi8i7oCdAJnuHX6OEkA/jrDBtMKUfA2YWlrnwlwt2p3EGOSpLW9uWNxwReabHjk4lVKrw6LKV0UlQ30RQ1xDUYntKbhUngWkmahg="
+      },
+      "catalog-api": {
+        "ConnectionStrings__eventbus": "JKVAi8i7oCdAJnuHX6OEkA/jrDBtMKUfA2YWlrnwlwt2p3EGOSpLW9uWNxwReabHjk4lVKrw6LKV0UlQ30RQ1xDUYntKbhUngWkmahg=",
+        "ConnectionStrings__catalogdb": "JKVAi8i7oCdAJnuHFuzRLr0KWyRK35HUUD8Bg5DylQ9x\u002BDESOChKSpLsDBYMQ/rA4hZ0LN7itYrJhk4DsXFu5AHFdXBNNzA1yC9nMlj143V1a7W7INtaOMSjlPEKr17yKi2uOGLyl137At2bOGHfLoRoOYt61RtO"
+      },
+      "ordering-api": {
+        "ConnectionStrings__eventbus": "JKVAi8i7oCdAJnuHX6OEkA/jrDBtMKUfA2YWlrnwlwt2p3EGOSpLW9uWNxwReabHjk4lVKrw6LKV0UlQ30RQ1xDUYntKbhUngWkmahg=",
+        "ConnectionStrings__orderingdb": "JKVAi8i7oCdAJnuHmByWsizqIHhFVQRYMcc4SJDylQ9x\u002BDESOChKSpLsDBYMQ/rA4hZ0LN7itYrJhk4DsXFu5AHFdXBNNzA1yC9nMlj143V1a7W7INtaOMSjlPEKr17yKi2uOGLyl137At2bOGHfIpd4PZV83BhINA=="
+      },
+      "order-processor": {
+        "ConnectionStrings__eventbus": "JKVAi8i7oCdAJnuHX6OEkA/jrDBtMKUfA2YWlrnwlwt2p3EGOSpLW9uWNxwReabHjk4lVKrw6LKV0UlQ30RQ1xDUYntKbhUngWkmahg=",
+        "ConnectionStrings__orderingdb": "JKVAi8i7oCdAJnuHmByWsizqIHhFVQRYMcc4SJDylQ9x\u002BDESOChKSpLsDBYMQ/rA4hZ0LN7itYrJhk4DsXFu5AHFdXBNNzA1yC9nMlj143V1a7W7INtaOMSjlPEKr17yKi2uOGLyl137At2bOGHfIpd4PZV83BhINA=="
+      },
+      "payment-processor": {
+        "ConnectionStrings__eventbus": "JKVAi8i7oCdAJnuHX6OEkA/jrDBtMKUfA2YWlrnwlwt2p3EGOSpLW9uWNxwReabHjk4lVKrw6LKV0UlQ30RQ1xDUYntKbhUngWkmahg="
+      },
+      "webhooks-api": {
+        "ConnectionStrings__eventbus": "JKVAi8i7oCdAJnuHX6OEkA/jrDBtMKUfA2YWlrnwlwt2p3EGOSpLW9uWNxwReabHjk4lVKrw6LKV0UlQ30RQ1xDUYntKbhUngWkmahg=",
+        "ConnectionStrings__webhooksdb": "JKVAi8i7oCdAJnuHcr50CwbAI4sJOA/07NDKppDylQ9x\u002BDESOChKSpLsDBYMQ/rA4hZ0LN7itYrJhk4DsXFu5AHFdXBNNzA1yC9nMlj143V1a7W7INtaOMSjlPEKr17yKi2uOGLyl137At2bOGHfOoB\u002BMIh62QxINA=="
+      },
+      "mobile-bff": {},
+      "webhooksclient": {},
+      "webapp": {
+        "ConnectionStrings__eventbus": "JKVAi8i7oCdAJnuHX6OEkA/jrDBtMKUfA2YWlrnwlwt2p3EGOSpLW9uWNxwReabHjk4lVKrw6LKV0UlQ30RQ1xDUYntKbhUngWkmahg="
+      }
+    }
+  },
+  "processAllComponents": true
+}
