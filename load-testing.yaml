@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k6-loadtest
+  labels:
+    app: k6-loadtest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k6-loadtest
+  template:
+    metadata:
+      labels:
+        app: k6-loadtest
+    spec:
+      containers:
+      - name: k6
+        image: grafana/k6:latest
+        command: ['sleep', '3600']
+        volumeMounts:
+        - name: k6-scripts
+          mountPath: /scripts
+      volumes:
+      - name: k6-scripts
+        configMap:
+          name: k6-scripts
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-scripts
+data:
+  eshop-test.js: |
+    import http from 'k6/http';
+    import { check, sleep } from 'k6';
+
+    export const options = {
+      vus: 5,
+      duration: '30s',
+    };
+
+    export default function () {
+      // Test working services directly
+      
+      // Test Basket API (running)
+      let response = http.get('http://basket-api:8080/health', { timeout: '10s' });
+      check(response, { 'basket-api health check': (r) => r.status === 200 });
+      
+      // Test Identity API (running)
+      response = http.get('http://identity-api:8080/health', { timeout: '10s' });
+      check(response, { 'identity-api health check': (r) => r.status === 200 });
+      
+      // Test Ordering API (running)
+      response = http.get('http://ordering-api:8080/health', { timeout: '10s' });
+      check(response, { 'ordering-api health check': (r) => r.status === 200 });
+      
+      // Test WebApp (running)
+      response = http.get('http://webapp:8080', { timeout: '10s' });
+      check(response, { 'webapp status check': (r) => r.status === 200 || r.status === 302 });
+      
+      sleep(1);
+    }
+  performance-test.js: |
+    import http from 'k6/http';
+    import { check, sleep } from 'k6';
+
+    export const options = {
+      stages: [
+        { duration: '2m', target: 20 },
+        { duration: '5m', target: 20 },
+        { duration: '2m', target: 40 },
+        { duration: '5m', target: 40 },
+        { duration: '2m', target: 0 },
+      ],
+    };
+
+    export default function () {
+      const BASE_URL = 'http://webapp.default.svc.cluster.local:8080';
+      
+      let response = http.get(`${BASE_URL}/`);
+      check(response, {
+        'homepage loaded': (r) => r.status === 200,
+        'response time < 500ms': (r) => r.timings.duration < 500,
+      });
+      
+      sleep(Math.random() * 3);
+    }

@@ -29,6 +29,8 @@ spec:
               containerPort: 18888
             - name: otlp
               containerPort: 18889
+            - name: otlp-http
+              containerPort: 18890
           env:
             - name: DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS
               value: "true"
@@ -49,4 +51,8 @@ spec:
       protocol: TCP
       port: 18889
       targetPort: 18889
-  type: ClusterIP
+    - name: otlp-http
+      protocol: TCP
+      port: 18890
+      targetPort: 18890
+  type: LoadBalancer

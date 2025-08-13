@@ -1,0 +1,210 @@
+services:
+  redis:
+    container_name: "redis"
+    image: "docker.io/library/redis:7.4"
+    environment:
+      REDIS_PASSWORD: "EIiFvSssS36ie3YKE25kh8"
+    ports:
+    - target: 6379
+      published: 6379
+    command:
+    - "-c"
+    - "redis-server --requirepass $REDIS_PASSWORD"
+    - "/bin/sh"
+    restart: unless-stopped
+  eventbus:
+    container_name: "eventbus"
+    image: "docker.io/library/rabbitmq:4.1"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "AkeoNa2XkcC!a8J26j6SEQ"
+    ports:
+    - target: 5672
+      published: 5672
+    restart: unless-stopped
+  postgres:
+    container_name: "postgres"
+    image: "docker.io/ankane/pgvector:latest"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "l1tV4vi1bzOWtDJqkizKX2"
+    ports:
+    - target: 5432
+      published: 5432
+    restart: unless-stopped
+  identity-api:
+    container_name: "identity-api"
+    image: "identity-api:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__identitydb: "Host=postgres;Port=5432;Username=postgres;Password=l1tV4vi1bzOWtDJqkizKX2;Database=identitydb"
+      BasketApiClient: "http://basket-api:8080"
+      OrderingApiClient: "http://ordering-api:8080"
+      WebhooksApiClient: "http://webhooks-api:8080"
+    ports:
+    - target: 8080
+      published: 10000
+    - target: 8443
+      published: 10001
+    restart: unless-stopped
+  basket-api:
+    container_name: "basket-api"
+    image: "basket-api:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__redis: "redis:6379,password=EIiFvSssS36ie3YKE25kh8"
+      ConnectionStrings__eventbus: "amqp://guest:AkeoNa2XkcC!a8J26j6SEQ@eventbus:5672"
+    ports:
+    - target: 8080
+      published: 10002
+    - target: 8443
+      published: 10003
+    restart: unless-stopped
+  catalog-api:
+    container_name: "catalog-api"
+    image: "catalog-api:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__eventbus: "amqp://guest:AkeoNa2XkcC!a8J26j6SEQ@eventbus:5672"
+      ConnectionStrings__catalogdb: "Host=postgres;Port=5432;Username=postgres;Password=l1tV4vi1bzOWtDJqkizKX2;Database=catalogdb"
+    ports:
+    - target: 8080
+      published: 10004
+    - target: 8443
+      published: 10005
+    restart: unless-stopped
+  ordering-api:
+    container_name: "ordering-api"
+    image: "ordering-api:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__eventbus: "amqp://guest:AkeoNa2XkcC!a8J26j6SEQ@eventbus:5672"
+      ConnectionStrings__orderingdb: "Host=postgres;Port=5432;Username=postgres;Password=l1tV4vi1bzOWtDJqkizKX2;Database=orderingdb"
+    ports:
+    - target: 8080
+      published: 10006
+    - target: 8443
+      published: 10007
+    restart: unless-stopped
+  order-processor:
+    container_name: "order-processor"
+    image: "order-processor:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__eventbus: "amqp://guest:AkeoNa2XkcC!a8J26j6SEQ@eventbus:5672"
+      ConnectionStrings__orderingdb: "Host=postgres;Port=5432;Username=postgres;Password=l1tV4vi1bzOWtDJqkizKX2;Database=orderingdb"
+    ports:
+    - target: 8080
+      published: 10008
+    - target: 8443
+      published: 10009
+    restart: unless-stopped
+  payment-processor:
+    container_name: "payment-processor"
+    image: "payment-processor:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__eventbus: "amqp://guest:AkeoNa2XkcC!a8J26j6SEQ@eventbus:5672"
+    ports:
+    - target: 8080
+      published: 10010
+    - target: 8443
+      published: 10011
+    restart: unless-stopped
+  webhooks-api:
+    container_name: "webhooks-api"
+    image: "webhooks-api:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__eventbus: "amqp://guest:AkeoNa2XkcC!a8J26j6SEQ@eventbus:5672"
+      ConnectionStrings__webhooksdb: "Host=postgres;Port=5432;Username=postgres;Password=l1tV4vi1bzOWtDJqkizKX2;Database=webhooksdb"
+    ports:
+    - target: 8080
+      published: 10012
+    - target: 8443
+      published: 10013
+    restart: unless-stopped
+  mobile-bff:
+    container_name: "mobile-bff"
+    image: "mobile-bff:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      services__catalog-api__http__0: "http://catalog-api:8080"
+      services__ordering-api__http__0: "http://ordering-api:8080"
+      services__basket-api__http__0: "http://basket-api:8080"
+      services__identity-api__http__0: "http://identity-api:8080"
+    ports:
+    - target: 8080
+      published: 10014
+    - target: 8443
+      published: 10015
+    restart: unless-stopped
+  webhooksclient:
+    container_name: "webhooksclient"
+    image: "webhooksclient:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      services__webhooks-api__http__0: "http://webhooks-api:8080"
+    ports:
+    - target: 8080
+      published: 10016
+    - target: 8443
+      published: 10017
+    restart: unless-stopped
+  webapp:
+    container_name: "webapp"
+    image: "webapp:latest"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      services__basket-api__http__0: "http://basket-api:8080"
+      services__catalog-api__http__0: "http://catalog-api:8080"
+      services__ordering-api__http__0: "http://ordering-api:8080"
+      ConnectionStrings__eventbus: "amqp://guest:AkeoNa2XkcC!a8J26j6SEQ@eventbus:5672"
+    ports:
+    - target: 8080
+      published: 10018
+    - target: 8443
+      published: 10019
+    restart: unless-stopped

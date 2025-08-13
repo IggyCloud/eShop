@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: payment-processor
-        image: payment-processor:latest
+        image: docker.io/sebastianruzanowski/payment-processor:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

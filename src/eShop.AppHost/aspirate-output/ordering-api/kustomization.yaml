@@ -16,6 +16,7 @@ configMapGenerator:
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=ordering-api
     - ASPNETCORE_URLS=http://+:8080;
+    - ConnectionStrings__orderingdb=Host=10.96.199.82;Port=5432;Username=postgres;Password=Pass@word;Database=orderingdb;SSL Mode=Disable;Timeout=30;
 
 secretGenerator:
 - name: ordering-api-secrets

@@ -19,6 +19,8 @@ configMapGenerator:
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=webapp
     - ASPNETCORE_URLS=http://+:8080;
+    - IdentityUrl=http://identity-api:8080
+    - CallBackUrl=http://localhost:30676
 
 secretGenerator:
 - name: webapp-secrets

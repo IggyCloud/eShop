@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: mobile-bff
-        image: mobile-bff:latest
+        image: docker.io/sebastianruzanowski/mobile-bff:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

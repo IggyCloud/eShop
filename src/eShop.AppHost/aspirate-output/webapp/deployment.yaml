@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: webapp
-        image: webapp:latest
+        image: docker.io/sebastianruzanowski/webapp:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

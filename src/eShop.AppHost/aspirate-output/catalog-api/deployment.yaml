@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: catalog-api
-        image: catalog-api:latest
+        image: docker.io/sebastianruzanowski/catalog-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

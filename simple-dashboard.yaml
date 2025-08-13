@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-k8s-dashboard
+  labels:
+    app: simple-k8s-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-k8s-dashboard
+  template:
+    metadata:
+      labels:
+        app: simple-k8s-dashboard
+    spec:
+      containers:
+      - name: dashboard
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: dashboard-html
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: dashboard-html
+        configMap:
+          name: dashboard-html
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-html
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>eShop Kubernetes Dashboard</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+            .container { max-width: 1200px; margin: 0 auto; }
+            .header { background: #1976d2; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+            .card { background: white; padding: 20px; margin: 10px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            .service-link { display: inline-block; margin: 10px; padding: 15px 25px; background: #4caf50; color: white; text-decoration: none; border-radius: 5px; }
+            .service-link:hover { background: #45a049; }
+            .commands { background: #f0f0f0; padding: 15px; border-radius: 5px; font-family: monospace; }
+            .status { color: #4caf50; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🚀 eShop Kubernetes Dashboard</h1>
+                <p>Your complete eShop microservices overview</p>
+            </div>
+            
+            <div class="card">
+                <h2>🎯 Quick Access</h2>
+                <a href="http://localhost:18888" class="service-link" target="_blank">📊 Aspire Dashboard</a>
+                <a href="http://localhost:8080" class="service-link" target="_blank">🛒 eShop WebApp</a>
+                <a href="#" class="service-link" onclick="refreshStatus()">🔄 Refresh Status</a>
+            </div>
+
+            <div class="card">
+                <h2>📋 Service Status</h2>
+                <div id="services-status">
+                    <p class="status">✅ Aspire Dashboard - Running on port 18888</p>
+                    <p class="status">✅ eShop WebApp - Running on port 8080</p>
+                    <p class="status">✅ PostgreSQL Database - Running</p>
+                    <p class="status">✅ Redis Cache - Running</p>
+                    <p class="status">⚠️ Catalog API - Database connectivity issues</p>
+                    <p class="status">⚠️ Identity API - Database connectivity issues</p>
+                    <p class="status">⚠️ Ordering API - Database connectivity issues</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🛠️ Management Commands</h2>
+                <div class="commands">
+                    <p><strong>View all pods:</strong><br>kubectl get pods -o wide</p>
+                    <p><strong>View services:</strong><br>kubectl get services</p>
+                    <p><strong>Check pod logs:</strong><br>kubectl logs [pod-name]</p>
+                    <p><strong>Restart deployment:</strong><br>kubectl rollout restart deployment [name]</p>
+                    <p><strong>Start dashboards:</strong><br>start-dashboards.bat</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔍 Troubleshooting</h2>
+                <ul>
+                    <li><strong>No products in WebApp:</strong> Database services need to be fixed</li>
+                    <li><strong>Empty Aspire Dashboard:</strong> Services need to be running and generating telemetry</li>
+                    <li><strong>Connection refused:</strong> Use port forwarding with kubectl</li>
+                    <li><strong>Database issues:</strong> Check PostgreSQL authentication and connection strings</li>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            function refreshStatus() {
+                alert('To get real-time status, use: kubectl get pods,services');
+            }
+        </script>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-k8s-dashboard
+spec:
+  type: LoadBalancer
+  selector:
+    app: simple-k8s-dashboard
+  ports:
+  - port: 80
+    targetPort: 80

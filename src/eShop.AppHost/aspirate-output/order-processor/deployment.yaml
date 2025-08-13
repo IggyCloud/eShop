@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: order-processor
-        image: order-processor:latest
+        image: docker.io/sebastianruzanowski/order-processor:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

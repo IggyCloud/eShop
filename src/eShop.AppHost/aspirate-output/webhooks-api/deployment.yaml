@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: webhooks-api
-        image: webhooks-api:latest
+        image: docker.io/sebastianruzanowski/webhooks-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

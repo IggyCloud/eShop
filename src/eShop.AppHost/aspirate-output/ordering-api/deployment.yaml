@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: ordering-api
-        image: ordering-api:latest
+        image: docker.io/sebastianruzanowski/ordering-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

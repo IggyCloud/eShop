@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-web-view
+  labels:
+    app: k8s-web-view
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-web-view
+  template:
+    metadata:
+      labels:
+        app: k8s-web-view
+    spec:
+      serviceAccountName: k8s-web-view
+      containers:
+      - name: k8s-web-view
+        image: hjacobs/kube-web-view
+        args:
+        - --port=8080
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-web-view
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-web-view
+rules:
+- apiGroups: [""]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-web-view
+subjects:
+- kind: ServiceAccount
+  name: k8s-web-view
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: k8s-web-view
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-web-view
+spec:
+  type: LoadBalancer
+  selector:
+    app: k8s-web-view
+  ports:
+  - port: 8080
+    targetPort: 8080

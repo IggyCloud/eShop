@@ -19,6 +19,7 @@ configMapGenerator:
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=identity-api
     - ASPNETCORE_URLS=http://+:8080;
+    - ConnectionStrings__identitydb=Host=10.96.199.82;Port=5432;Username=postgres;Password=Pass@word;Database=identitydb;SSL Mode=Disable;Timeout=30;
 
 secretGenerator:
 - name: identity-api-secrets

@@ -10,8 +10,10 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DOTNET_ENVIRONMENT": "Development",
         "DOTNET_DASHBOARD_OTLP_ENDPOINT_URL": "https://localhost:18076",
-        "DOTNET_RESOURCE_SERVICE_ENDPOINT_URL": "https://localhost:19076"
+        "DOTNET_RESOURCE_SERVICE_ENDPOINT_URL": "https://localhost:19076",
+        "ASPIRE_CONTAINER_RUNTIME": "docker"
       }
     }
   }
 }
+// This file is used to configure the launch settings for the ASP.NET Core application.

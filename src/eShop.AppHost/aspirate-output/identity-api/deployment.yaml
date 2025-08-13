@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: identity-api
-        image: identity-api:latest
+        image: docker.io/sebastianruzanowski/identity-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
