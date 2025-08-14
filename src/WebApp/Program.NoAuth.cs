@@ -1,4 +1,4 @@
-﻿using eShop.WebApp.Components;
+using eShop.WebApp.Components;
 using eShop.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,18 +7,9 @@ builder.AddServiceDefaults();
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-// Check if authentication should be disabled for local K8s deployment
-var disableAuth = builder.Configuration.GetValue<bool>("DISABLE_AUTH");
-
-if (disableAuth)
-{
-    builder.AddApplicationServicesNoAuth();
-    builder.AddNoAuthServices();
-}
-else
-{
-    builder.AddApplicationServices();
-}
+// Use no-auth version
+builder.AddApplicationServicesNoAuth();
+builder.AddNoAuthServices();
 
 var app = builder.Build();
 
@@ -28,18 +19,13 @@ app.MapDefaultEndpoints();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseAntiforgery();
-
-app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-
 app.MapForwarder("/product-images/{id}", "http://catalog-api", "/api/catalog/items/{id}/pic");
 
 app.Run();

@@ -20,9 +20,29 @@
       "Bash(del identity-api-service.yaml)",
       "Bash(rm:*)",
       "Bash(do timeout 3 curl -s http://localhost:8080/)",
-      "Bash(for i in {1..10})"
+      "Bash(for i in {1..10})",
+      "Bash(docker build:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(docker push:*)",
+      "Bash(az:*)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" login)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" login --use-device-code)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" keyvault list --resource-group eshop-rg --output table)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" group list --output table)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" account show --query name --output tsv)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" group create --name eshop-rg --location eastus)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" keyvault create --name eshop-kv-12345 --resource-group eshop-rg --location eastus --enable-rbac-authorization false --enabled-for-template-deployment true)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" provider register --namespace Microsoft.ContainerRegistry)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" provider register --namespace Microsoft.App)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" provider register --namespace Microsoft.DBforPostgreSQL)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" provider register --namespace Microsoft.Cache)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" provider register --namespace Microsoft.OperationalInsights --wait)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "acceptEdits"
   }
 }

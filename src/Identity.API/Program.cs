@@ -27,6 +27,9 @@ builder.Services.AddIdentityServer(options =>
 
     // TODO: Remove this line in production.
     options.KeyManagement.Enabled = false;
+    
+    // Disable PAR endpoint (not supported in Community license)
+    options.Endpoints.EnablePushedAuthorizationEndpoint = false;
 })
 .AddInMemoryIdentityResources(Config.GetResources())
 .AddInMemoryApiScopes(Config.GetApiScopes())

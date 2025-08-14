@@ -90,11 +90,13 @@
                     RequirePkce = false,
                     RedirectUris = new List<string>
                     {
-                        $"{configuration["WebAppClient"]}/signin-oidc"
+                        $"{configuration["WebAppClient"]}/signin-oidc",
+                        "http://localhost:8080/signin-oidc"
                     },
                     PostLogoutRedirectUris = new List<string>
                     {
-                        $"{configuration["WebAppClient"]}/signout-callback-oidc"
+                        $"{configuration["WebAppClient"]}/signout-callback-oidc",
+                        "http://localhost:8080/signout-callback-oidc"
                     },
                     AllowedScopes = new List<string>
                     {

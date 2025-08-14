@@ -59,6 +59,7 @@ public static class Extensions
 
         var identityUrl = configuration.GetRequiredValue("IdentityUrl");
         var callBackUrl = configuration.GetRequiredValue("CallBackUrl");
+        var externalIdentityUrl = configuration.GetValue("ExternalIdentityUrl", identityUrl);
         var sessionCookieLifetime = configuration.GetValue("SessionCookieLifetimeMinutes", 60);
 
         // Add Authentication services
@@ -72,7 +73,8 @@ public static class Extensions
         .AddOpenIdConnect(options =>
         {
             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.Authority = identityUrl;
+            options.Authority = externalIdentityUrl;
+            options.MetadataAddress = $"{identityUrl}/.well-known/openid-configuration";
             options.SignedOutRedirectUri = callBackUrl;
             options.ClientId = "webapp";
             options.ClientSecret = "secret";
@@ -84,6 +86,22 @@ public static class Extensions
             options.Scope.Add("profile");
             options.Scope.Add("orders");
             options.Scope.Add("basket");
+
+            options.PushedAuthorizationBehavior = PushedAuthorizationBehavior.Disable;
+            
+            // Override endpoints for external access
+            options.Events = new OpenIdConnectEvents
+            {
+                OnRedirectToIdentityProvider = context =>
+                {
+                    // Replace internal service URL with external NodePort URL in authorization endpoint
+                    if (context.ProtocolMessage.IssuerAddress?.Contains("identity-api:8080") == true)
+                    {
+                        context.ProtocolMessage.IssuerAddress = context.ProtocolMessage.IssuerAddress.Replace("identity-api:8080", "localhost:30082");
+                    }
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         // Blazor auth services

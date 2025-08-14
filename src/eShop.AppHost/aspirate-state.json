@@ -2,11 +2,11 @@
   "projectPath": ".",
   "inputPath": "aspirate-output",
   "outputPath": "aspirate-output",
-  "containerRegistry": "docker.io",
+  "containerRegistry": "docker.io/sebastianruzanowski",
   "containerImageTags": [
     "latest"
   ],
-  "imagePullPolicy": "IfNotPresent",
+  "imagePullPolicy": "Never",
   "containerBuilder": "docker",
   "containerRepositoryPrefix": "sebastianruzanowski",
   "kubeContext": "docker-desktop",

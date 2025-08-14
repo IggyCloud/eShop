@@ -491,3 +491,59 @@ $RECYCLE.BIN/
 /playwright/.auth/
 /user.json
 .azure
+
+# ========================
+# SECURITY: NEVER COMMIT SECRETS
+# ========================
+
+# Azure credentials and secrets
+azure-credentials.json
+service-principal.json
+*.pem
+*.crt
+*.pfx
+acr-credentials.json
+docker-credentials.json
+
+# Key Vault backups and exports (if any)
+keyvault-backup.*
+secrets-export.*
+vault-secrets.*
+
+# Database passwords and connection strings
+database-config.json
+db-connections.txt
+connection-strings.json
+
+# Local development secrets
+user-secrets/
+local-secrets/
+development-passwords.txt
+test-credentials/
+secrets.json
+appsettings.Production.json
+appsettings.*.Production.json
+
+# PowerShell credential files
+*.clixml
+*.credential
+
+# Environment files with secrets
+*.env.*
+.env.production
+.env.local
+.env.staging
+
+# Docker compose overrides with secrets
+docker-compose.override.yml
+docker-compose.local.yml
+docker-compose.production.yml
+
+# Application settings with potential secrets
+appsettings.Local.json
+appsettings.*.Local.json
+
+# Temporary certificates and keys
+tempkey.jwk
+tempkey.rsa
+*.rsa
