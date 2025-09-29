@@ -65,3 +65,18 @@ scrape_configs:
     static_configs:
       - targets: ['webapp:8080']
     metrics_path: /metrics
+    
+  # K6 performance testing metrics
+  - job_name: 'k6'
+    kubernetes_sd_configs:
+      - role: service
+        namespaces:
+          names:
+            - k6-loadtest
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: k6-metrics
+      - source_labels: [__meta_kubernetes_service_port_name]
+        action: keep
+        regex: metrics

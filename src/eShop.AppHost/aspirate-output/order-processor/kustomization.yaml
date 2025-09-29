@@ -13,8 +13,8 @@ configMapGenerator:
     - OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY=in_memory
     - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
     - HTTP_PORTS=8080
-    - ConnectionStrings__eventbus=amqp://guest:oMdfzexkN19VF6HreKTRmK@eventbus:5672
-    - ConnectionStrings__orderingdb=Host=postgres;Port=5432;Username=postgres;Password=nTcnYT7UhAVmyVJyO2Q6zk;Database=orderingdb
+    - ConnectionStrings__eventbus=amqp://guest:g76UZRxr!0ZAJPc31!rj1z@eventbus:5672
+    - ConnectionStrings__orderingdb=Host=postgres;Port=5432;Username=postgres;Password=5mt1gDF2B6cNmsrjygTZVz;Database=orderingdb
     - DisableAuth=true
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=order-processor

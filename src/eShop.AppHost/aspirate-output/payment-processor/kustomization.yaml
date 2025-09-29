@@ -13,7 +13,7 @@ configMapGenerator:
     - OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY=in_memory
     - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
     - HTTP_PORTS=8080
-    - ConnectionStrings__eventbus=amqp://guest:oMdfzexkN19VF6HreKTRmK@eventbus:5672
+    - ConnectionStrings__eventbus=amqp://guest:g76UZRxr!0ZAJPc31!rj1z@eventbus:5672
     - DisableAuth=true
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=payment-processor
