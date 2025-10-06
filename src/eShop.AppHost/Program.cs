@@ -99,12 +99,12 @@ var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
     .WithEnvironment("DisableAuth", "true");
 
 // Reverse proxies
-builder.AddProject<Projects.Mobile_Bff_Shopping>("mobile-bff")
-    .WithReference(catalogApi)
-    .WithReference(orderingApi)
-    .WithReference(basketApi)
-    // .WithReference(identityApi) // Identity disabled
-    .WithEnvironment("DisableAuth", "true");
+//builder.AddProject<Projects.Mobile_Bff_Shopping>("mobile-bff")
+//    .WithReference(catalogApi)
+//    .WithReference(orderingApi)
+//    .WithReference(basketApi)
+//    // .WithReference(identityApi) // Identity disabled
+//    .WithEnvironment("DisableAuth", "true");
 
 // Apps
 var webhooksClient = builder.AddProject<Projects.WebhookClient>("webhooksclient", launchProfileName)
