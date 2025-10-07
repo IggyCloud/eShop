@@ -13,7 +13,8 @@ var prometheus = builder.AddContainer("prometheus", "prom/prometheus:latest")
               "--storage.tsdb.path=/prometheus/", 
               "--web.console.libraries=/etc/prometheus/console_libraries",
               "--web.console.templates=/etc/prometheus/consoles",
-              "--web.enable-lifecycle")
+              "--web.enable-lifecycle",
+              "--web.enable-remote-write-receiver")
     .WithEndpoint(9090, 9090, "http")
     .WithExternalHttpEndpoints()
     .WithVolume("prometheus-data", "/prometheus")
@@ -98,12 +99,12 @@ var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
     .WithEnvironment("DisableAuth", "true");
 
 // Reverse proxies
-builder.AddProject<Projects.Mobile_Bff_Shopping>("mobile-bff")
-    .WithReference(catalogApi)
-    .WithReference(orderingApi)
-    .WithReference(basketApi)
-    // .WithReference(identityApi) // Identity disabled
-    .WithEnvironment("DisableAuth", "true");
+//builder.AddProject<Projects.Mobile_Bff_Shopping>("mobile-bff")
+//    .WithReference(catalogApi)
+//    .WithReference(orderingApi)
+//    .WithReference(basketApi)
+//    // .WithReference(identityApi) // Identity disabled
+//    .WithEnvironment("DisableAuth", "true");
 
 // Apps
 var webhooksClient = builder.AddProject<Projects.WebhookClient>("webhooksclient", launchProfileName)

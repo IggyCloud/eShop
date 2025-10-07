@@ -16,7 +16,7 @@ configMapGenerator:
     - services__basket-api__http__0=http://basket-api:8080
     - services__catalog-api__http__0=http://catalog-api:8080
     - services__ordering-api__http__0=http://ordering-api:8080
-    - ConnectionStrings__eventbus=amqp://guest:oMdfzexkN19VF6HreKTRmK@eventbus:5672
+    - ConnectionStrings__eventbus=amqp://guest:UZtuVZiBkqhbD4Ljs0BbG7@eventbus:5672
     - DisableAuth=true
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=webapp

@@ -10,7 +10,6 @@ resources:
 - order-processor
 - payment-processor
 - webhooks-api
-- mobile-bff
 - webhooksclient
 - webapp
 - dashboard.yaml
