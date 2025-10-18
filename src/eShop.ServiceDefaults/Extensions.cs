@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Pyroscope.OpenTelemetry;
 
 namespace eShop.ServiceDefaults;
 
@@ -72,7 +73,11 @@ public static partial class Extensions
                 tracing.AddAspNetCoreInstrumentation()
                     .AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddSource("Experimental.Microsoft.Extensions.AI");                    
+                    .AddSource("Experimental.Microsoft.Extensions.AI");
+
+                tracing.AddSource("Npgsql");
+                // Link spans with Pyroscope profiles when profiler is present
+                tracing.AddProcessor(new PyroscopeSpanProcessor());
             });
 
         builder.AddOpenTelemetryExporters();
@@ -125,3 +130,5 @@ public static partial class Extensions
         return app;
     }
 }
+
+
