@@ -9,7 +9,7 @@ configMapGenerator:
 - name: eventbus-env
   literals:
     - RABBITMQ_DEFAULT_USER=guest
-    - RABBITMQ_DEFAULT_PASS=UZtuVZiBkqhbD4Ljs0BbG7
+    - RABBITMQ_DEFAULT_PASS=iCDyADsAugNTn7IEzK19us
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=eventbus
 
