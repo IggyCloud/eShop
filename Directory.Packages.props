@@ -98,5 +98,9 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.0.26"/>
     <!-- Before license change -->
     <PackageVersion Include="MediatR" Version="12.5.0" />
+    <!-- Profiling / Span Profiles -->
+    <PackageVersion Include="Pyroscope.OpenTelemetry" Version="0.3.0" />
+    <!-- DB tracing (PostgreSQL) -->
+    <PackageVersion Include="Npgsql.OpenTelemetry" Version="9.0.4" />
   </ItemGroup>
 </Project>
