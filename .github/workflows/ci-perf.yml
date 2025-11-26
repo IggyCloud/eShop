@@ -40,10 +40,10 @@ jobs:
         with:
           node-version: '18'
       - name: Start dependencies
-        run: docker compose -f $COMPOSE_FILE up -d postgres redis rabbitmq
+        run: docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d postgres redis rabbitmq
       - name: Start APIs
         run: |
-          docker compose -f $COMPOSE_FILE up -d catalog-api basket-api
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d catalog-api basket-api
           echo "Waiting for APIs..."
           sleep 25
       - name: k6 read test
@@ -64,4 +64,4 @@ jobs:
         run: node .github/scripts/assert-k6.js read-summary.json write-summary.json
       - name: Teardown
         if: always()
-        run: docker compose -f $COMPOSE_FILE down -v
+        run: docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE down -v
