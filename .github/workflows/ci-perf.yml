@@ -6,8 +6,8 @@ on:
       - '**'
 
 env:
-  CATALOG_IMAGE: localhost:5000/catalog-api:ci
-  BASKET_IMAGE: localhost:5000/basket-api:ci
+  CATALOG_IMAGE: catalog-api:ci
+  BASKET_IMAGE: basket-api:ci
   CATALOG_CONN: "Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30"
   POSTGRES_PASSWORD: postgres
   COMPOSE_FILE: .github/compose/ci.yml
@@ -36,11 +36,9 @@ jobs:
       - name: Publish container images for perf
         run: |
           dotnet publish src/Catalog.API/Catalog.API.csproj -c Release -r linux-x64 \
-            /t:PublishContainer -p:ContainerImageName=catalog-api \
-            -p:ContainerRegistry=localhost:5000 -p:ContainerImageTags=ci
+            /t:PublishContainer -p:ContainerRepository=catalog-api -p:ContainerImageTags=ci
           dotnet publish src/Basket.API/Basket.API.csproj -c Release -r linux-x64 \
-            /t:PublishContainer -p:ContainerImageName=basket-api \
-            -p:ContainerRegistry=localhost:5000 -p:ContainerImageTags=ci
+            /t:PublishContainer -p:ContainerRepository=basket-api -p:ContainerImageTags=ci
 
   perf:
     runs-on: ubuntu-latest
