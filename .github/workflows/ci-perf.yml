@@ -25,12 +25,12 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Restore
-        run: dotnet restore eShop.slnx
-      - name: Build
-        run: dotnet build eShop.slnx -c Release --no-restore
-      - name: Unit tests
-        run: dotnet test eShop.slnx -c Release --no-build
+      - name: Restore (web solution filter)
+        run: dotnet restore eShop.Web.slnf
+      - name: Build (web solution filter)
+        run: dotnet build eShop.Web.slnf -c Release --no-restore
+      - name: Unit tests (web solution filter)
+        run: dotnet test eShop.Web.slnf -c Release --no-build
       - name: Publish container images for perf
         run: |
           dotnet publish src/Catalog.API/Catalog.API.csproj -c Release -r linux-x64 \
