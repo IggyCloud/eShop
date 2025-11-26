@@ -41,6 +41,19 @@ jobs:
           node-version: '18'
       - name: Start dependencies
         run: docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d postgres redis rabbitmq
+      - name: Wait for Postgres
+        run: |
+          for i in {1..40}; do
+            if docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres pg_isready -U postgres; then
+              echo "Postgres is ready"
+              exit 0
+            fi
+            echo "Waiting for Postgres... (${i}/40)"
+            sleep 3
+          done
+          echo "Postgres did not become ready, showing logs"
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200
+          exit 1
       - name: Start APIs
         run: |
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d catalog-api basket-api
