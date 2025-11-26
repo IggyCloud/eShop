@@ -1,4 +1,6 @@
-# eShop Aspirate Deployment Guide
+# eShop Aspirate Deployment Guide (Deprecated)
+
+> Legacy path: this Aspirate-based flow is kept for reference only. The preferred delivery path is the GitHub Actions perf pipeline documented in `agents.md` (build/test/publish containers, compose spin-up, k6 perf gate). Use this file only if you explicitly need the old Aspirate-based workflow.
 
 This guide provides scripts and instructions for deploying the eShop application to Kubernetes using Aspirate, with the Identity service disabled for simplified authentication.
 
