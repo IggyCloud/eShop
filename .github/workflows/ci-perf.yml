@@ -12,7 +12,7 @@ env:
   POSTGRES_PASSWORD: postgres
   COMPOSE_FILE: .github/compose/ci.yml
   COMPOSE_PROJECT_NAME: eshopci
-  K6_RESOURCES_REPO: ""
+  K6_RESOURCES_REPO: IggyCloud/IggyCloudResources
   K6_RESOURCES_REF: main
   K6_RESOURCES_PATH: k6-resources
   K6_SCRIPTS_DIR: resources/k6/scripts
@@ -39,8 +39,7 @@ jobs:
             /t:PublishContainer -p:ContainerRepository=catalog-api -p:ContainerImageTags=ci
           dotnet publish src/Basket.API/Basket.API.csproj -c Release -r linux-x64 \
             /t:PublishContainer -p:ContainerRepository=basket-api -p:ContainerImageTags=ci
-      - name: Checkout k6 resources (optional)
-        if: env.K6_RESOURCES_REPO != ''
+      - name: Checkout k6 resources
         uses: actions/checkout@v4
         with:
           repository: ${{ env.K6_RESOURCES_REPO }}
@@ -48,12 +47,7 @@ jobs:
           path: ${{ env.K6_RESOURCES_PATH }}
           token: ${{ secrets.K6_RESOURCES_TOKEN != '' && secrets.K6_RESOURCES_TOKEN || github.token }}
       - name: Set k6 scripts path
-        run: |
-          if [ -n "${K6_RESOURCES_REPO}" ]; then
-            echo "K6_SCRIPTS_DIR=${K6_RESOURCES_PATH}/k6/scripts" >> $GITHUB_ENV
-          else
-            echo "K6_SCRIPTS_DIR=${K6_SCRIPTS_DIR}" >> $GITHUB_ENV
-          fi
+        run: echo "K6_SCRIPTS_DIR=${K6_RESOURCES_PATH}/k6/scripts" >> $GITHUB_ENV
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
