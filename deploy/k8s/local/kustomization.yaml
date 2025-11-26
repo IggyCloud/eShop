@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../src/eShop.AppHost/aspirate-output/prometheus
+  - ../../src/eShop.AppHost/aspirate-output/grafana
+  - ../../src/eShop.AppHost/aspirate-output/redis
+  - ../../src/eShop.AppHost/aspirate-output/eventbus
+  - ../../src/eShop.AppHost/aspirate-output/postgres
+  - ../../src/eShop.AppHost/aspirate-output/basket-api
+  - ../../src/eShop.AppHost/aspirate-output/catalog-api
+  - ../../src/eShop.AppHost/aspirate-output/ordering-api
+  - ../../src/eShop.AppHost/aspirate-output/order-processor
+  - ../../src/eShop.AppHost/aspirate-output/payment-processor
+  - ../../src/eShop.AppHost/aspirate-output/webhooks-api
+  - ../../src/eShop.AppHost/aspirate-output/webhooksclient
+  - ../../src/eShop.AppHost/aspirate-output/webapp
+  - ../../src/eShop.AppHost/aspirate-output/dashboard.yaml
