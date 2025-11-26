@@ -6,9 +6,17 @@ internal static class ServerCallContextIdentityExtensions
 {
     public static string? GetUserIdentity(this ServerCallContext context) 
     {
-        // Check if authentication is disabled
-        var config = context.GetHttpContext().RequestServices.GetService<IConfiguration>();
-        var disableAuth = config?.GetValue<bool>("DisableAuth") ?? false;
+        var httpContext = context.GetHttpContext();
+        var services = httpContext.RequestServices;
+        var disableAuth = false;
+
+        if (services == null)
+        {
+            return httpContext.User.FindFirst("sub")?.Value;
+        }
+
+        var config = services.GetService<IConfiguration>();
+        disableAuth = config?.GetValue<bool>("DisableAuth") ?? false;
         
         if (disableAuth)
         {
@@ -16,14 +24,22 @@ internal static class ServerCallContextIdentityExtensions
             return "demo-user-123";
         }
         
-        return context.GetHttpContext().User.FindFirst("sub")?.Value;
+        return httpContext.User.FindFirst("sub")?.Value;
     }
     
     public static string? GetUserName(this ServerCallContext context) 
     {
-        // Check if authentication is disabled
-        var config = context.GetHttpContext().RequestServices.GetService<IConfiguration>();
-        var disableAuth = config?.GetValue<bool>("DisableAuth") ?? false;
+        var httpContext = context.GetHttpContext();
+        var services = httpContext.RequestServices;
+        var disableAuth = false;
+
+        if (services == null)
+        {
+            return httpContext.User.FindFirst(x => x.Type == ClaimTypes.Name)?.Value;
+        }
+
+        var config = services.GetService<IConfiguration>();
+        disableAuth = config?.GetValue<bool>("DisableAuth") ?? false;
         
         if (disableAuth)
         {
@@ -31,6 +47,6 @@ internal static class ServerCallContextIdentityExtensions
             return "Demo User";
         }
         
-        return context.GetHttpContext().User.FindFirst(x => x.Type == ClaimTypes.Name)?.Value;
+        return httpContext.User.FindFirst(x => x.Type == ClaimTypes.Name)?.Value;
     }
 }
