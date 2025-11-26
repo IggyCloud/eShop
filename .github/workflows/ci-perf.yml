@@ -1,10 +1,9 @@
-name: ci-perf
+name: catalog-api-perf
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches:
+      - '**'
 
 env:
   CATALOG_IMAGE: localhost:5000/catalog-api:ci
@@ -13,33 +12,45 @@ env:
   POSTGRES_PASSWORD: postgres
   COMPOSE_FILE: .github/compose/ci.yml
   COMPOSE_PROJECT_NAME: eshopci
+  K6_RESOURCES_REPO: IggyCloud/IggyCloudResources
+  K6_RESOURCES_REF: main
+  K6_RESOURCES_PATH: IggyCloudResources
+  K6_SCRIPTS_DIR: IggyCloudResources/k6/scripts
 
 jobs:
   build-test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
       - name: Restore
         run: dotnet restore eShop.slnx
       - name: Build
         run: dotnet build eShop.slnx -c Release --no-restore
       - name: Unit tests
         run: dotnet test eShop.slnx -c Release --no-build
-      - name: Build containers
+      - name: Publish container images for perf
         run: |
-          docker build -t $CATALOG_IMAGE -f src/Catalog.API/Dockerfile src/Catalog.API
-          docker build -t $BASKET_IMAGE -f src/Basket.API/Dockerfile src/Basket.API
-          docker push $CATALOG_IMAGE || true
-          docker push $BASKET_IMAGE || true
+          dotnet publish src/Catalog.API/Catalog.API.csproj -c Release -r linux-x64 \
+            /t:PublishContainer -p:ContainerImageName=catalog-api \
+            -p:ContainerRegistry=localhost:5000 -p:ContainerImageTags=ci
+          dotnet publish src/Basket.API/Basket.API.csproj -c Release -r linux-x64 \
+            /t:PublishContainer -p:ContainerImageName=basket-api \
+            -p:ContainerRegistry=localhost:5000 -p:ContainerImageTags=ci
 
   perf:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build-test
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout k6 resources
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.K6_RESOURCES_REPO }}
+          ref: ${{ env.K6_RESOURCES_REF }}
+          path: ${{ env.K6_RESOURCES_PATH }}
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -56,14 +67,14 @@ jobs:
             -v "$PWD":/work -w /work \
             -e BASE_URL=http://catalog-api:8080 \
             grafana/k6:0.54.0 \
-            run --summary-export read-summary.json IggyCloudResources/k6/scripts/catalog-api-closed-model-read-test.js
+            run --summary-export read-summary.json ${K6_SCRIPTS_DIR}/catalog-api-closed-model-read-test-quick.js
       - name: k6 write test
         run: |
           docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
             -v "$PWD":/work -w /work \
             -e BASE_URL=http://catalog-api:8080 \
             grafana/k6:0.54.0 \
-            run --summary-export write-summary.json IggyCloudResources/k6/scripts/catalog-api-closed-model-write-test.js
+            run --summary-export write-summary.json ${K6_SCRIPTS_DIR}/catalog-api-closed-model-write-test-quick.js
       - name: Assert thresholds
         run: node .github/scripts/assert-k6.js read-summary.json write-summary.json
       - name: Teardown
