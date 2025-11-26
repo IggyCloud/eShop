@@ -12,7 +12,10 @@ env:
   POSTGRES_PASSWORD: postgres
   COMPOSE_FILE: .github/compose/ci.yml
   COMPOSE_PROJECT_NAME: eshopci
-  K6_SCRIPTS_DIR: resources/k6/scripts
+  K6_RESOURCES_REPO: IggyCloud/IggyCloudResources
+  K6_RESOURCES_REF: main
+  K6_RESOURCES_PATH: k6-resources
+  K6_SCRIPTS_DIR: k6-resources/k6/scripts
 
 jobs:
   perf:
@@ -36,6 +39,13 @@ jobs:
             /t:PublishContainer -p:ContainerRepository=catalog-api -p:ContainerImageTags=ci
           dotnet publish src/Basket.API/Basket.API.csproj -c Release -r linux-x64 \
             /t:PublishContainer -p:ContainerRepository=basket-api -p:ContainerImageTags=ci
+      - name: Checkout k6 resources
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.K6_RESOURCES_REPO }}
+          ref: ${{ env.K6_RESOURCES_REF }}
+          path: ${{ env.K6_RESOURCES_PATH }}
+          token: ${{ secrets.K6_RESOURCES_TOKEN != '' && secrets.K6_RESOURCES_TOKEN || github.token }}
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -45,7 +55,17 @@ jobs:
         run: |
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d catalog-api basket-api
           echo "Waiting for APIs..."
-          sleep 25
+          for i in {1..30}; do
+            if curl -sf http://localhost:18080/health || curl -sf http://catalog-api:8080/health; then
+              echo "catalog-api is up"
+              exit 0
+            fi
+            echo "catalog-api not ready yet (${i}/30)..."
+            sleep 5
+          done
+          echo "catalog-api did not become ready, showing logs..."
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200
+          exit 1
       - name: k6 read test
         run: |
           docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
