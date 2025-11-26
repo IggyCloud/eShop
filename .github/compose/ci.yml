@@ -7,19 +7,10 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: catalogdb
-    command: >
-      postgres -c max_connections=400
-               -c shared_buffers=512MB
-               -c effective_cache_size=1536MB
-               -c work_mem=1285kB
-               -c maintenance_work_mem=128MB
-               -c checkpoint_completion_target=0.9
-               -c wal_buffers=16MB
-               -c default_statistics_target=100
-               -c random_page_cost=1.1
-               -c effective_io_concurrency=200
-               -c min_wal_size=1GB
-               -c max_wal_size=4GB
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    volumes:
+      - ./postgres.conf:/etc/postgresql/postgresql.conf:ro
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -63,3 +54,6 @@ services:
       - rabbitmq
     ports:
       - "18081:8080"
+
+volumes:
+  postgres-data:
