@@ -1,0 +1,71 @@
+name: ci-perf
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  CATALOG_IMAGE: localhost:5000/catalog-api:ci
+  BASKET_IMAGE: localhost:5000/basket-api:ci
+  CATALOG_CONN: "Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30"
+  POSTGRES_PASSWORD: postgres
+  COMPOSE_FILE: .github/compose/ci.yml
+  COMPOSE_PROJECT_NAME: eshopci
+
+jobs:
+  build-test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore eShop.slnx
+      - name: Build
+        run: dotnet build eShop.slnx -c Release --no-restore
+      - name: Unit tests
+        run: dotnet test eShop.slnx -c Release --no-build
+      - name: Build containers
+        run: |
+          docker build -t $CATALOG_IMAGE -f src/Catalog.API/Dockerfile src/Catalog.API
+          docker build -t $BASKET_IMAGE -f src/Basket.API/Dockerfile src/Basket.API
+          docker push $CATALOG_IMAGE || true
+          docker push $BASKET_IMAGE || true
+
+  perf:
+    runs-on: self-hosted
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Start dependencies
+        run: docker compose -f $COMPOSE_FILE up -d postgres redis rabbitmq
+      - name: Start APIs
+        run: |
+          docker compose -f $COMPOSE_FILE up -d catalog-api basket-api
+          echo "Waiting for APIs..."
+          sleep 25
+      - name: k6 read test
+        run: |
+          docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
+            -v "$PWD":/work -w /work \
+            -e BASE_URL=http://catalog-api:8080 \
+            grafana/k6:0.54.0 \
+            run --summary-export read-summary.json IggyCloudResources/k6/scripts/catalog-api-closed-model-read-test.js
+      - name: k6 write test
+        run: |
+          docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
+            -v "$PWD":/work -w /work \
+            -e BASE_URL=http://catalog-api:8080 \
+            grafana/k6:0.54.0 \
+            run --summary-export write-summary.json IggyCloudResources/k6/scripts/catalog-api-closed-model-write-test.js
+      - name: Assert thresholds
+        run: node .github/scripts/assert-k6.js read-summary.json write-summary.json
+      - name: Teardown
+        if: always()
+        run: docker compose -f $COMPOSE_FILE down -v
