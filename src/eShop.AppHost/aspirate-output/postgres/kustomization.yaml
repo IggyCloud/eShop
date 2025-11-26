@@ -11,7 +11,7 @@ configMapGenerator:
     - POSTGRES_HOST_AUTH_METHOD=md5
     - POSTGRES_INITDB_ARGS=--auth-host=md5 --auth-local=md5
     - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=LjJef4uOIXfwG5cUnDuFuC
+    - POSTGRES_PASSWORD=yGLWwAnvGQHiuK7vjmbshL
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=postgres
 
