@@ -31,7 +31,7 @@ services:
       - "15672:15672"
 
   catalog-api:
-    image: ${CATALOG_IMAGE:-localhost:5000/catalog-api:ci}
+    image: ${CATALOG_IMAGE:-catalog-api:ci}
     container_name: eshopci-catalog-api
     environment:
       ConnectionStrings__catalogdb: ${CATALOG_CONN:-Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30}
@@ -43,7 +43,7 @@ services:
       - "18080:8080"
 
   basket-api:
-    image: ${BASKET_IMAGE:-localhost:5000/basket-api:ci}
+    image: ${BASKET_IMAGE:-basket-api:ci}
     container_name: eshopci-basket-api
     environment:
       ConnectionStrings__redis: redis:6379
