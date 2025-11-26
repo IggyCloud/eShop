@@ -13,12 +13,22 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7
     container_name: eshopci-redis
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -29,6 +39,11 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
 
   catalog-api:
     image: ${CATALOG_IMAGE:-catalog-api:ci}
@@ -38,7 +53,8 @@ services:
       DisableAuth: "true"
       ASPNETCORE_URLS: http://+:8080
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "18080:8080"
 
@@ -50,8 +66,10 @@ services:
       ConnectionStrings__eventbus: amqp://guest:guest@rabbitmq:5672
       ASPNETCORE_URLS: http://+:8080
     depends_on:
-      - redis
-      - rabbitmq
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "18081:8080"
 
