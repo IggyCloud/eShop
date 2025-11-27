@@ -36,6 +36,8 @@ jobs:
             /t:PublishContainer -p:ContainerRepository=catalog-api -p:ContainerImageTags=ci
           dotnet publish src/Basket.API/Basket.API.csproj -c Release -r linux-x64 \
             /t:PublishContainer -p:ContainerRepository=basket-api -p:ContainerImageTags=ci
+      - name: Clean state (containers/volumes)
+        run: docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE down -v || true
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -43,12 +45,12 @@ jobs:
         run: docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d postgres redis rabbitmq
       - name: Wait for Postgres
         run: |
-          for i in {1..60}; do
+          for i in {1..5}; do
             if docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres pg_isready -U postgres; then
               echo "Postgres is ready"
               exit 0
             fi
-            echo "Waiting for Postgres... (${i}/60)"
+            echo "Waiting for Postgres... (${i}/5)"
             sleep 3
           done
           echo "Postgres did not become ready, showing logs"
@@ -56,12 +58,12 @@ jobs:
           exit 1
       - name: Wait for RabbitMQ
         run: |
-          for i in {1..60}; do
+          for i in {1..5}; do
             if docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T rabbitmq rabbitmq-diagnostics -q ping; then
               echo "RabbitMQ is ready"
               exit 0
             fi
-            echo "Waiting for RabbitMQ... (${i}/60)"
+            echo "Waiting for RabbitMQ... (${i}/5)"
             sleep 3
           done
           echo "RabbitMQ did not become ready, showing logs"
@@ -77,6 +79,7 @@ jobs:
               set -euo pipefail; \
               dotnet tool install --global dotnet-ef --version 9.0.* || true; \
               export PATH=\"\$PATH:/root/.dotnet/tools\"; \
+              dotnet clean eShop.slnx -c Release || true; \
               dotnet restore src/Catalog.API/Catalog.API.csproj; \
               dotnet build src/Catalog.API/Catalog.API.csproj -c Release; \
               dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release --verbose" \
@@ -87,12 +90,12 @@ jobs:
           sleep 5
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d catalog-api basket-api
           echo "Waiting for APIs..."
-          for i in {1..60}; do
+          for i in {1..5}; do
             if curl -sf http://localhost:18080/health || curl -sf http://catalog-api:8080/health; then
               echo "catalog-api is up"
               exit 0
             fi
-            echo "catalog-api not ready yet (${i}/60)..."
+            echo "catalog-api not ready yet (${i}/5)..."
             sleep 5
           done
           echo "catalog-api did not become ready, showing logs..."
