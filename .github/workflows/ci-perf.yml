@@ -71,10 +71,14 @@ jobs:
         run: |
           docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
             -v "$PWD":/work -w /work \
-            -e ConnectionStrings__catalogdb="Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30" \
+            -e ConnectionStrings__catalogdb="$CATALOG_CONN" \
             -e ConnectionStrings__EventBus="amqp://eshop:eshop@rabbitmq:5672" \
-            mcr.microsoft.com/dotnet/sdk:9.0 \
-            dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release --no-build
+            mcr.microsoft.com/dotnet/sdk:9.0 bash -lc "\
+              dotnet tool install --global dotnet-ef --version 9.* || true && \
+              export PATH=\"\$PATH:/root/.dotnet/tools\" && \
+              dotnet restore src/Catalog.API/Catalog.API.csproj && \
+              dotnet build src/Catalog.API/Catalog.API.csproj -c Release && \
+              dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release"
       - name: Start APIs
         run: |
           # Small grace period after dependencies are healthy
