@@ -68,9 +68,13 @@ jobs:
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 rabbitmq
           exit 1
       - name: Apply catalog migrations
-        env:
-          ConnectionStrings__catalogdb: Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30
-        run: dotnet ef database update --project src/Catalog.API/Catalog.API.csproj -c Release --no-build
+        run: |
+          docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
+            -v "$PWD":/work -w /work \
+            -e ConnectionStrings__catalogdb="Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30" \
+            -e ConnectionStrings__EventBus="amqp://eshop:eshop@rabbitmq:5672" \
+            mcr.microsoft.com/dotnet/sdk:9.0 \
+            dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release --no-build
       - name: Start APIs
         run: |
           # Small grace period after dependencies are healthy
