@@ -73,16 +73,16 @@ jobs:
           sleep 5
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE up -d catalog-api basket-api
           echo "Waiting for APIs..."
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -sf http://localhost:18080/health || curl -sf http://catalog-api:8080/health; then
               echo "catalog-api is up"
               exit 0
             fi
-            echo "catalog-api not ready yet (${i}/30)..."
+            echo "catalog-api not ready yet (${i}/60)..."
             sleep 5
           done
           echo "catalog-api did not become ready, showing logs..."
-          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 catalog-api postgres
           exit 1
       - name: k6 read test
         run: |
