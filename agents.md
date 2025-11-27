@@ -7,7 +7,7 @@ This repo now uses the GitHub Actions perf pipeline as the primary delivery path
 - Steps:
   1) Restore/build/test web solution filter (Basket + Ordering unit tests).
   2) Publish `catalog-api` and `basket-api` container images locally (`catalog-api:ci`, `basket-api:ci`).
-  3) Bring up the perf compose stack (`.github/compose/ci.yml`) with pgvector Postgres, Redis, RabbitMQ (with health checks).
+  3) Bring up the perf compose stack (`.github/compose/ci.yml`) with pgvector Postgres (host port 55432), Redis, RabbitMQ (with health checks).
   4) Wait for Postgres and RabbitMQ to be healthy, then start APIs.
   5) Run k6 perf tests (read/write) against `catalog-api` with thresholds enforced by `.github/scripts/assert-k6.js`.
   6) Teardown the stack.
@@ -21,6 +21,7 @@ This repo now uses the GitHub Actions perf pipeline as the primary delivery path
   docker run --rm --network eshopci_default -v "$PWD":/work -w /work -e BASE_URL=http://catalog-api:8080 grafana/k6:0.54.0 run resources/k6/scripts/catalog-api-closed-model-write-test-quick.js
   docker compose -p eshopci -f .github/compose/ci.yml down -v
   ```
+  - If you need direct DB access from host tools (pgAdmin, psql), connect to `localhost:55432` (user/password: `postgres`).
 
 ## Legacy (deprecated) Aspir8 path
 - Docs: `README-ASPIRATE.md`.
