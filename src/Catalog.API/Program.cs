@@ -33,22 +33,20 @@ static async Task ApplyMigrationsWithRetryAsync(WebApplication app)
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
     // Skip migrations when no provider is configured (design-time/tooling runs)
-    try
+    var options = scope.ServiceProvider.GetService<DbContextOptions<CatalogContext>>();
+    var hasProvider = options?.Extensions.OfType<Microsoft.EntityFrameworkCore.Infrastructure.RelationalOptionsExtension>().Any() == true;
+    if (!hasProvider)
     {
-        var options = scope.ServiceProvider.GetService<DbContextOptions<CatalogContext>>();
-        if (options == null || !options.Extensions.Any())
-        {
-            logger.LogInformation("No EF Core provider configured for CatalogContext. Skipping migrations (likely design-time run).");
-            return;
-        }
-    }
-    catch (InvalidOperationException ex) when (ex.Message?.Contains("No database provider has been configured") == true)
-    {
-        logger.LogInformation("Skipping database migrations: no provider configured (design-time/tool run).");
+        logger.LogInformation("No EF Core relational provider configured for CatalogContext. Skipping migrations (likely design-time run).");
         return;
     }
 
-    var db = scope.ServiceProvider.GetRequiredService<CatalogContext>();
+    var db = scope.ServiceProvider.GetService<CatalogContext>();
+    if (db == null)
+    {
+        logger.LogInformation("CatalogContext not resolved; skipping migrations.");
+        return;
+    }
 
     for (var attempt = 1; attempt <= maxRetries; attempt++)
     {
