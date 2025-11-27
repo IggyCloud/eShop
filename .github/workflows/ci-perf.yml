@@ -67,6 +67,10 @@ jobs:
           echo "RabbitMQ did not become ready, showing logs"
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 rabbitmq
           exit 1
+      - name: Apply catalog migrations
+        env:
+          ConnectionStrings__catalogdb: Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30
+        run: dotnet ef database update --project src/Catalog.API/Catalog.API.csproj -c Release --no-build
       - name: Start APIs
         run: |
           # Small grace period after dependencies are healthy
