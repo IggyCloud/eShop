@@ -74,11 +74,13 @@ jobs:
             -e ConnectionStrings__catalogdb="$CATALOG_CONN" \
             -e ConnectionStrings__EventBus="amqp://eshop:eshop@rabbitmq:5672" \
             mcr.microsoft.com/dotnet/sdk:9.0 bash -lc "\
-              dotnet tool install --global dotnet-ef --version 9.* || true && \
-              export PATH=\"\$PATH:/root/.dotnet/tools\" && \
-              dotnet restore src/Catalog.API/Catalog.API.csproj && \
-              dotnet build src/Catalog.API/Catalog.API.csproj -c Release && \
-              dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release"
+              set -euo pipefail; \
+              dotnet tool install --global dotnet-ef --version 9.0.* || true; \
+              export PATH=\"\$PATH:/root/.dotnet/tools\"; \
+              dotnet restore src/Catalog.API/Catalog.API.csproj; \
+              dotnet build src/Catalog.API/Catalog.API.csproj -c Release; \
+              dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release --verbose" \
+          || { echo 'Migration failed, showing Postgres logs'; docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 postgres; exit 1; }
       - name: Start APIs
         run: |
           # Small grace period after dependencies are healthy
