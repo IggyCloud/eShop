@@ -76,8 +76,11 @@ jobs:
             -v "$PWD":/work -w /work \
             -e ConnectionStrings__catalogdb="$CATALOG_CONN" \
             -e ConnectionStrings__EventBus="amqp://eshop:eshop@rabbitmq:5672" \
+            -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
             mcr.microsoft.com/dotnet/sdk:9.0 bash -lc "\
               set -euo pipefail; set -x; \
+              apt-get update -y >/dev/null; \
+              apt-get install -y --no-install-recommends postgresql-client >/dev/null; \
               dotnet tool install --global dotnet-ef --version 9.0.* || true; \
               export PATH=\"\$PATH:/root/.dotnet/tools\"; \
               dotnet restore src/Catalog.API/Catalog.API.csproj; \
@@ -92,6 +95,14 @@ jobs:
                 --startup-project src/Catalog.API/Catalog.API.csproj \
                 --configuration Release \
                 --no-build \
+                --connection \"\$ConnectionStrings__catalogdb\" \
+                --verbose; \
+              applied=\$(PGPASSWORD=\"\$POSTGRES_PASSWORD\" psql \"host=postgres port=5432 user=postgres dbname=catalogdb\" -At -c 'select count(*) from \"__EFMigrationsHistory\"'); \
+              PGPASSWORD=\"\$POSTGRES_PASSWORD\" psql \"host=postgres port=5432 user=postgres dbname=catalogdb\" -c 'select \"MigrationId\",\"ProductVersion\" from \"__EFMigrationsHistory\"'; \
+              if [ \"\$applied\" -eq 0 ]; then echo 'No migrations applied; failing'; exit 1; fi; \
+              dotnet ef migrations list \
+                --project src/Catalog.API/Catalog.API.csproj \
+                --startup-project src/Catalog.API/Catalog.API.csproj \
                 --connection \"\$ConnectionStrings__catalogdb\" \
                 --verbose" \
           || { echo 'Migration failed, showing Postgres logs'; docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 postgres; exit 1; }
