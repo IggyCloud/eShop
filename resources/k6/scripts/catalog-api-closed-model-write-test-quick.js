@@ -70,6 +70,7 @@ function generateTestItem(data) {
     data.catalogBrands[Math.floor(Math.random() * data.catalogBrands.length)].id : 1;
 
   return {
+    id: 0,
     name: `k6-test-item-${itemId}`,
     description: `Test item created by k6`,
     price: 19.99,
