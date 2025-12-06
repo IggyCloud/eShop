@@ -9,7 +9,7 @@ This repo now uses the GitHub Actions perf pipeline as the primary delivery path
   2) Publish `catalog-api` and `basket-api` container images locally (`catalog-api:ci`, `basket-api:ci`).
   3) Bring up the perf compose stack (`.github/compose/ci.yml`) with pgvector Postgres (host port 55432), Redis, RabbitMQ (with health checks). APIs run with `ASPNETCORE_ENVIRONMENT=Development` so `/health` endpoints are exposed for readiness.
   4) Wait for Postgres and RabbitMQ to be healthy, apply EF migrations for Catalog, normalize identity sequences (Catalog/CatalogBrand/CatalogType), TRUNCATE Catalog (restart identity), and start APIs.
-  5) Run k6 perf tests in order: write first, then read, with thresholds enforced by `.github/scripts/assert-k6.js` (scripts live under `resources/k6/scripts` in-repo).
+  5) Run k6 perf tests in order: write first, then read, with thresholds enforced by `.github/scripts/assert-k6.js` (scripts live under `resources/k6/scripts` in-repo). The k6 containers run as root and artifacts are cleaned before each run to avoid permissions issues on `read-summary.json` / `write-summary.json`.
   6) Teardown the stack.
 - Scripts: k6 lives in `resources/k6/scripts`; compose config in `.github/compose/ci.yml`; workflow in `.github/workflows/ci-perf.yml`.
 - To run locally (mirror CI):

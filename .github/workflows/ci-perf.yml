@@ -116,9 +116,12 @@ jobs:
           echo "catalog-api did not become ready, showing logs..."
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 catalog-api postgres
           exit 1
+      - name: Clean k6 artifacts
+        run: rm -f read-summary.json write-summary.json
       - name: k6 write test
         run: |
           docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
+            --user 0:0 \
             -v "$PWD":/work -w /work \
             -e BASE_URL=http://catalog-api:8080 \
             grafana/k6:0.54.0 \
@@ -126,6 +129,7 @@ jobs:
       - name: k6 read test
         run: |
           docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
+            --user 0:0 \
             -v "$PWD":/work -w /work \
             -e BASE_URL=http://catalog-api:8080 \
             grafana/k6:0.54.0 \
