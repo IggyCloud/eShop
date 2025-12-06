@@ -77,11 +77,16 @@ jobs:
             -e ConnectionStrings__catalogdb="$CATALOG_CONN" \
             -e ConnectionStrings__EventBus="amqp://eshop:eshop@rabbitmq:5672" \
             mcr.microsoft.com/dotnet/sdk:9.0 bash -lc "\
-              set -euo pipefail; \
+              set -euo pipefail; set -x; \
               dotnet tool install --global dotnet-ef --version 9.0.* || true; \
               export PATH=\"\$PATH:/root/.dotnet/tools\"; \
-              dotnet restore eShop.Web.slnf; \
+              dotnet restore src/Catalog.API/Catalog.API.csproj; \
               dotnet build src/Catalog.API/Catalog.API.csproj -c Release --no-restore; \
+              dotnet ef migrations list \
+                --project src/Catalog.API/Catalog.API.csproj \
+                --startup-project src/Catalog.API/Catalog.API.csproj \
+                --connection \"\$ConnectionStrings__catalogdb\" \
+                --verbose; \
               dotnet ef database update \
                 --project src/Catalog.API/Catalog.API.csproj \
                 --startup-project src/Catalog.API/Catalog.API.csproj \
