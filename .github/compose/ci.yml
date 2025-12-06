@@ -47,6 +47,7 @@ services:
     image: ${CATALOG_IMAGE:-catalog-api:ci}
     container_name: eshopci-catalog-api
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__catalogdb: ${CATALOG_CONN:-Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=catalogdb;Maximum Pool Size=300;Timeout=15;Command Timeout=30}
       ConnectionStrings__EventBus: amqp://eshop:eshop@rabbitmq:5672
       DisableAuth: "true"
@@ -63,6 +64,7 @@ services:
     image: ${BASKET_IMAGE:-basket-api:ci}
     container_name: eshopci-basket-api
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Redis: redis:6379
       ConnectionStrings__EventBus: amqp://eshop:eshop@rabbitmq:5672
       ASPNETCORE_URLS: http://+:8080
