@@ -22,8 +22,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Restore (web solution filter)
-        run: dotnet restore eShop.Web.slnf
+          global-json-file: global.json
+      - name: Restore .NET workloads
+        run: dotnet workload restore
+      - name: Restore (full solution)
+        run: dotnet restore eShop.slnx
       - name: Build (web solution filter)
         run: dotnet build eShop.Web.slnf -c Release --no-restore
       - name: Unit tests (basket)
