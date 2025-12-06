@@ -80,10 +80,9 @@ jobs:
               set -euo pipefail; \
               dotnet tool install --global dotnet-ef --version 9.0.* || true; \
               export PATH=\"\$PATH:/root/.dotnet/tools\"; \
-              dotnet clean eShop.slnx -c Release || true; \
-              dotnet restore src/Catalog.API/Catalog.API.csproj; \
-              dotnet build src/Catalog.API/Catalog.API.csproj -c Release; \
-              dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release --verbose" \
+              dotnet restore eShop.Web.slnf; \
+              dotnet build src/Catalog.API/Catalog.API.csproj -c Release --no-restore; \
+              dotnet ef database update --project src/Catalog.API/Catalog.API.csproj --configuration Release --no-build --verbose" \
           || { echo 'Migration failed, showing Postgres logs'; docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 postgres; exit 1; }
       - name: Start APIs
         run: |
