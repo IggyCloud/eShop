@@ -23,10 +23,8 @@ jobs:
         with:
           dotnet-version: '9.0.x'
           global-json-file: global.json
-      - name: Restore .NET workloads
-        run: dotnet workload restore
-      - name: Restore (full solution)
-        run: dotnet restore eShop.slnx
+      - name: Restore (web solution filter, no MAUI workloads)
+        run: dotnet restore eShop.Web.slnf
       - name: Build (web solution filter)
         run: dotnet build eShop.Web.slnf -c Release --no-restore
       - name: Unit tests (basket)
