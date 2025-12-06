@@ -91,14 +91,6 @@ jobs:
                 --connection \"\$ConnectionStrings__catalogdb\" \
                 --verbose" \
           || { echo 'Migration failed, showing Postgres logs'; docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 postgres; exit 1; }
-      - name: Normalize catalog identity sequences
-        run: |
-          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval('\"Catalog_Id_seq\"', (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"Catalog\"), false);"
-          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval('\"CatalogBrand_Id_seq\"', (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"CatalogBrand\"), false);"
-          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval('\"CatalogType_Id_seq\"', (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"CatalogType\"), false);"
-      - name: Reset catalog items
-        run: |
-          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "TRUNCATE TABLE \"Catalog\" RESTART IDENTITY CASCADE;"
       - name: Start APIs
         run: |
           # Small grace period after dependencies are healthy
@@ -116,6 +108,11 @@ jobs:
           echo "catalog-api did not become ready, showing logs..."
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 catalog-api postgres
           exit 1
+      - name: Sync catalog identity sequences after seed
+        run: |
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval(pg_get_serial_sequence('\"Catalog\"','Id'), (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"Catalog\"), false);"
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval(pg_get_serial_sequence('\"CatalogBrand\"','Id'), (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"CatalogBrand\"), false);"
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval(pg_get_serial_sequence('\"CatalogType\"','Id'), (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"CatalogType\"), false);"
       - name: Clean k6 artifacts
         run: rm -f read-summary.json write-summary.json
       - name: k6 write test
