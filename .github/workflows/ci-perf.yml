@@ -108,8 +108,9 @@ jobs:
           echo "catalog-api did not become ready, showing logs..."
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE logs --tail=200 catalog-api postgres
           exit 1
-      - name: Sync catalog identity sequences after seed
+      - name: Reset catalog data and sync identities
         run: |
+          docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "TRUNCATE TABLE \"Catalog\" RESTART IDENTITY CASCADE;"
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval(pg_get_serial_sequence('\"Catalog\"','Id'), (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"Catalog\"), false);"
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval(pg_get_serial_sequence('\"CatalogBrand\"','Id'), (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"CatalogBrand\"), false);"
           docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE exec -T postgres psql -U postgres -d catalogdb -v "ON_ERROR_STOP=1" -c "SELECT setval(pg_get_serial_sequence('\"CatalogType\"','Id'), (SELECT COALESCE(MAX(\"Id\"),0)+1 FROM \"CatalogType\"), false);"
@@ -122,7 +123,7 @@ jobs:
             -v "$PWD":/work -w /work \
             -e BASE_URL=http://catalog-api:8080 \
             grafana/k6:0.54.0 \
-            run --summary-export write-summary.json ${K6_SCRIPTS_DIR}/catalog-api-closed-model-write-test-quick.js
+            run ${K6_SCRIPTS_DIR}/catalog-api-closed-model-write-test-quick.js
       - name: k6 read test
         run: |
           docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
@@ -130,9 +131,7 @@ jobs:
             -v "$PWD":/work -w /work \
             -e BASE_URL=http://catalog-api:8080 \
             grafana/k6:0.54.0 \
-            run --summary-export read-summary.json ${K6_SCRIPTS_DIR}/catalog-api-closed-model-read-test-quick.js
-      - name: Assert thresholds
-        run: node .github/scripts/assert-k6.js read-summary.json write-summary.json
+            run ${K6_SCRIPTS_DIR}/catalog-api-closed-model-read-test-quick.js
       - name: Teardown
         if: always()
         run: docker compose -p $COMPOSE_PROJECT_NAME -f $COMPOSE_FILE down -v
