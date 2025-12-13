@@ -22,7 +22,7 @@ public static class Extensions
             {
                 npgsqlOptions.UseVector();
             });
-        }, poolSize: 128);
+        }, poolSize: 300);
 
         // REVIEW: This is done for development ease but shouldn't be here in production
         builder.Services.AddMigration<CatalogContext, CatalogContextSeed>();

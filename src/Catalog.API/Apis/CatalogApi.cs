@@ -131,7 +131,8 @@ public static class CatalogApi
         var pageSize = paginationRequest.PageSize;
         var pageIndex = paginationRequest.PageIndex;
 
-        var root = (IQueryable<CatalogItem>)services.Context.CatalogItems;
+        var root = (IQueryable<CatalogItem>)services.Context.CatalogItems
+            .AsNoTracking();
 
         if (name is not null)
         {
@@ -163,7 +164,10 @@ public static class CatalogApi
         [AsParameters] CatalogServices services,
         [Description("List of ids for catalog items to return")] int[] ids)
     {
-        var items = await services.Context.CatalogItems.Where(item => ids.Contains(item.Id)).ToListAsync();
+        var items = await services.Context.CatalogItems
+            .AsNoTracking()
+            .Where(item => ids.Contains(item.Id))
+            .ToListAsync();
         return TypedResults.Ok(items);
     }
 
@@ -180,7 +184,10 @@ public static class CatalogApi
             });
         }
 
-        var item = await services.Context.CatalogItems.Include(ci => ci.CatalogBrand).SingleOrDefaultAsync(ci => ci.Id == id);
+        var item = await services.Context.CatalogItems
+            .AsNoTracking()
+            .Include(ci => ci.CatalogBrand)
+            .SingleOrDefaultAsync(ci => ci.Id == id);
 
         if (item == null)
         {
@@ -207,7 +214,9 @@ public static class CatalogApi
         IWebHostEnvironment environment,
         [Description("The catalog item id")] int id)
     {
-        var item = await context.CatalogItems.FindAsync(id);
+        var item = await context.CatalogItems
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id);
 
         if (item is null || item.PictureFileName is null)
         {
@@ -257,6 +266,7 @@ public static class CatalogApi
 
         // Get the total number of items
         var totalItems = await services.Context.CatalogItems
+            .AsNoTracking()
             .LongCountAsync();
 
         // Get the next page of items, ordered by most similar (smallest distance) to the input search
@@ -264,6 +274,7 @@ public static class CatalogApi
         if (services.Logger.IsEnabled(LogLevel.Debug))
         {
             var itemsWithDistance = await services.Context.CatalogItems
+                .AsNoTracking()
                 .Where(c => c.Embedding != null)
                 .Select(c => new { Item = c, Distance = c.Embedding!.CosineDistance(vector) })
                 .OrderBy(c => c.Distance)
@@ -278,6 +289,7 @@ public static class CatalogApi
         else
         {
             itemsOnPage = await services.Context.CatalogItems
+                .AsNoTracking()
                 .Where(c => c.Embedding != null)
                 .OrderBy(c => c.Embedding!.CosineDistance(vector))
                 .Skip(pageSize * pageIndex)
