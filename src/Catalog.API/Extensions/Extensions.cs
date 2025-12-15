@@ -1,4 +1,5 @@
 using eShop.Catalog.API.Services;
+using Microsoft.EntityFrameworkCore;
 
 public static class Extensions
 {
@@ -21,7 +22,10 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.UseVector();
+                npgsqlOptions.EnableRetryOnFailure(3, TimeSpan.FromSeconds(2), null);
+                npgsqlOptions.CommandTimeout(30);
             });
+            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }, poolSize: 300);
 
         // REVIEW: This is done for development ease but shouldn't be here in production

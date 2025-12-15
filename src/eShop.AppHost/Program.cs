@@ -45,8 +45,8 @@ var postgres = builder.AddPostgres("postgres")
 
 var catalogDb = postgres.AddDatabase("catalogdb");
 // var identityDb = postgres.AddDatabase("identitydb"); // Identity disabled
-var orderDb = postgres.AddDatabase("orderingdb");
-var webhooksDb = postgres.AddDatabase("webhooksdb");
+// var orderDb = postgres.AddDatabase("orderingdb");
+// var webhooksDb = postgres.AddDatabase("webhooksdb");
 
 var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
@@ -62,12 +62,12 @@ var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
 // var identityEndpoint = identityApi.GetEndpoint(launchProfileName);
 
-var basketApi = builder.AddProject<Projects.Basket_API>("basket-api")
-    .WithReference(redis)
-    .WithReference(rabbitMq).WaitFor(rabbitMq)
-    // .WithEnvironment("Identity__Url", identityEndpoint) // Identity disabled
-    .WithEnvironment("DisableAuth", "true");
-redis.WithParentRelationship(basketApi);
+// var basketApi = builder.AddProject<Projects.Basket_API>("basket-api")
+//     .WithReference(redis)
+//     .WithReference(rabbitMq).WaitFor(rabbitMq)
+//     // .WithEnvironment("Identity__Url", identityEndpoint) // Identity disabled
+//     .WithEnvironment("DisableAuth", "true");
+// redis.WithParentRelationship(basketApi);
 
 var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
@@ -75,28 +75,28 @@ var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
     .WithEnvironment("DisableAuth", "true")
     .WithExternalHttpEndpoints();
 
-var orderingApi = builder.AddProject<Projects.Ordering_API>("ordering-api")
-    .WithReference(rabbitMq).WaitFor(rabbitMq)
-    .WithReference(orderDb).WaitFor(orderDb)
-    .WithHttpHealthCheck("/health")
-    // .WithEnvironment("Identity__Url", identityEndpoint) // Identity disabled
-    .WithEnvironment("DisableAuth", "true");
+// var orderingApi = builder.AddProject<Projects.Ordering_API>("ordering-api")
+//     .WithReference(rabbitMq).WaitFor(rabbitMq)
+//     .WithReference(orderDb).WaitFor(orderDb)
+//     .WithHttpHealthCheck("/health")
+//     // .WithEnvironment("Identity__Url", identityEndpoint) // Identity disabled
+//     .WithEnvironment("DisableAuth", "true");
 
-builder.AddProject<Projects.OrderProcessor>("order-processor")
-    .WithReference(rabbitMq).WaitFor(rabbitMq)
-    .WithReference(orderDb)
-    .WaitFor(orderingApi) // wait for the orderingApi to be ready because that contains the EF migrations
-    .WithEnvironment("DisableAuth", "true");
+// builder.AddProject<Projects.OrderProcessor>("order-processor")
+//     .WithReference(rabbitMq).WaitFor(rabbitMq)
+//     .WithReference(orderDb)
+//     .WaitFor(orderingApi) // wait for the orderingApi to be ready because that contains the EF migrations
+//     .WithEnvironment("DisableAuth", "true");
 
-builder.AddProject<Projects.PaymentProcessor>("payment-processor")
-    .WithReference(rabbitMq).WaitFor(rabbitMq)
-    .WithEnvironment("DisableAuth", "true");
+// builder.AddProject<Projects.PaymentProcessor>("payment-processor")
+//     .WithReference(rabbitMq).WaitFor(rabbitMq)
+//     .WithEnvironment("DisableAuth", "true");
 
-var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
-    .WithReference(rabbitMq).WaitFor(rabbitMq)
-    .WithReference(webhooksDb)
-    // .WithEnvironment("Identity__Url", identityEndpoint) // Identity disabled
-    .WithEnvironment("DisableAuth", "true");
+// var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
+//     .WithReference(rabbitMq).WaitFor(rabbitMq)
+//     .WithReference(webhooksDb)
+//     // .WithEnvironment("Identity__Url", identityEndpoint) // Identity disabled
+//     .WithEnvironment("DisableAuth", "true");
 
 // Reverse proxies
 //builder.AddProject<Projects.Mobile_Bff_Shopping>("mobile-bff")
@@ -107,44 +107,27 @@ var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
 //    .WithEnvironment("DisableAuth", "true");
 
 // Apps
-var webhooksClient = builder.AddProject<Projects.WebhookClient>("webhooksclient", launchProfileName)
-    .WithReference(webHooksApi)
-    // .WithEnvironment("IdentityUrl", identityEndpoint) // Identity disabled
-    .WithEnvironment("DisableAuth", "true");
+// var webhooksClient = builder.AddProject<Projects.WebhookClient>("webhooksclient", launchProfileName)
+//     .WithReference(webHooksApi)
+//     // .WithEnvironment("IdentityUrl", identityEndpoint) // Identity disabled
+//     .WithEnvironment("DisableAuth", "true");
 
-var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
-    .WithExternalHttpEndpoints()
-    .WithUrls(c => c.Urls.ForEach(u => u.DisplayText = $"Online Store ({u.Endpoint?.EndpointName})"))
-    .WithReference(basketApi)
-    .WithReference(catalogApi)
-    .WithReference(orderingApi)
-    .WithReference(rabbitMq).WaitFor(rabbitMq)
-    // .WithEnvironment("IdentityUrl", identityApi.GetEndpoint("http")) // Identity disabled
-    .WithEnvironment("DisableAuth", "true");
-
-// set to true if you want to use OpenAI
-bool useOpenAI = false;
-if (useOpenAI)
-{
-    builder.AddOpenAI(catalogApi, webApp, OpenAITarget.OpenAI); // set to AzureOpenAI if you want to use Azure OpenAI
-}
-
-bool useOllama = false;
-if (useOllama)
-{
-    builder.AddOllama(catalogApi, webApp);
-}
-
-// Wire up the callback urls (self referencing)
-webApp.WithEnvironment("CallBackUrl", webApp.GetEndpoint(launchProfileName));
-webhooksClient.WithEnvironment("CallBackUrl", webhooksClient.GetEndpoint(launchProfileName));
+// var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
+//     .WithExternalHttpEndpoints()
+//     .WithUrls(c => c.Urls.ForEach(u => u.DisplayText = $"Online Store ({u.Endpoint?.EndpointName})"))
+//     .WithReference(basketApi)
+//     .WithReference(catalogApi)
+//     .WithReference(orderingApi)
+//     .WithReference(rabbitMq).WaitFor(rabbitMq)
+//     // .WithEnvironment("IdentityUrl", identityApi.GetEndpoint("http")) // Identity disabled
+//     .WithEnvironment("DisableAuth", "true");
 
 // Identity has a reference to all of the apps for callback urls, this is a cyclic reference
 // Identity API disabled
 // identityApi.WithEnvironment("BasketApiClient", basketApi.GetEndpoint("http"))
 //            .WithEnvironment("OrderingApiClient", orderingApi.GetEndpoint("http"))
 //            .WithEnvironment("WebhooksApiClient", webHooksApi.GetEndpoint("http"))
-//            .WithEnvironment("WebhooksWebClient", webhooksClient.GetEndpoint(launchProfileName))
+//            .WithEnvironment("WebhooksWebClient", webhooksclient.GetEndpoint(launchProfileName))
 //            .WithEnvironment("WebAppClient", "http://localhost:30509");
 
 builder.Build().Run();

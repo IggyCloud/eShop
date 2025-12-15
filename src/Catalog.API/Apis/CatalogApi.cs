@@ -9,6 +9,8 @@ namespace eShop.Catalog.API;
 
 public static class CatalogApi
 {
+    private const int MaxPageSize = 200;
+
     public static IEndpointRouteBuilder MapCatalogApi(this IEndpointRouteBuilder app)
     {
         // RouteGroupBuilder for catalog endpoints
@@ -115,9 +117,10 @@ public static class CatalogApi
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     public static async Task<Ok<PaginatedItems<CatalogItem>>> GetAllItemsV1(
         [AsParameters] PaginationRequest paginationRequest,
-        [AsParameters] CatalogServices services)
+        [AsParameters] CatalogServices services,
+        CancellationToken cancellationToken = default)
     {
-        return await GetAllItems(paginationRequest, services, null, null, null);
+        return await GetAllItems(paginationRequest, services, null, null, null, cancellationToken);
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -126,10 +129,11 @@ public static class CatalogApi
         [AsParameters] CatalogServices services,
         [Description("The name of the item to return")] string? name,
         [Description("The type of items to return")] int? type,
-        [Description("The brand of items to return")] int? brand)
+        [Description("The brand of items to return")] int? brand,
+        CancellationToken cancellationToken = default)
     {
-        var pageSize = paginationRequest.PageSize;
-        var pageIndex = paginationRequest.PageIndex;
+        var pageSize = Math.Min(MaxPageSize, Math.Max(1, paginationRequest.PageSize));
+        var pageIndex = Math.Max(0, paginationRequest.PageIndex);
 
         var root = (IQueryable<CatalogItem>)services.Context.CatalogItems
             .AsNoTracking();
@@ -148,13 +152,13 @@ public static class CatalogApi
         }
 
         var totalItems = await root
-            .LongCountAsync();
+            .LongCountAsync(cancellationToken);
 
         var itemsOnPage = await root
             .OrderBy(c => c.Name)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return TypedResults.Ok(new PaginatedItems<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage));
     }
@@ -169,41 +173,6 @@ public static class CatalogApi
             .Where(item => ids.Contains(item.Id))
             .ToListAsync();
         return TypedResults.Ok(items);
-    }
-
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Results<Ok<CatalogItem>, NotFound, BadRequest<ProblemDetails>>> GetItemById(
-        HttpContext httpContext,
-        [AsParameters] CatalogServices services,
-        [Description("The catalog item id")] int id)
-    {
-        if (id <= 0)
-        {
-            return TypedResults.BadRequest<ProblemDetails>(new (){
-                Detail = "Id is not valid"
-            });
-        }
-
-        var item = await services.Context.CatalogItems
-            .AsNoTracking()
-            .Include(ci => ci.CatalogBrand)
-            .SingleOrDefaultAsync(ci => ci.Id == id);
-
-        if (item == null)
-        {
-            return TypedResults.NotFound();
-        }
-
-        return TypedResults.Ok(item);
-    }
-
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Ok<PaginatedItems<CatalogItem>>> GetItemsByName(
-        [AsParameters] PaginationRequest paginationRequest,
-        [AsParameters] CatalogServices services,
-        [Description("The name of the item to return")] string name)
-    {
-        return await GetAllItems(paginationRequest, services, name, null, null);
     }
 
     [ProducesResponseType<byte[]>(StatusCodes.Status200OK, "application/octet-stream",
@@ -230,6 +199,43 @@ public static class CatalogApi
         DateTime lastModified = File.GetLastWriteTimeUtc(path);
 
         return TypedResults.PhysicalFile(path, mimetype, lastModified: lastModified);
+    }
+
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    public static async Task<Results<Ok<CatalogItem>, NotFound, BadRequest<ProblemDetails>>> GetItemById(
+        HttpContext httpContext,
+        [AsParameters] CatalogServices services,
+        [Description("The catalog item id")] int id,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new (){
+                Detail = "Id is not valid"
+            });
+        }
+
+        var item = await services.Context.CatalogItems
+            .AsNoTracking()
+            .Include(ci => ci.CatalogBrand)
+            .SingleOrDefaultAsync(ci => ci.Id == id, cancellationToken);
+
+        if (item == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Ok(item);
+    }
+
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    public static async Task<Ok<PaginatedItems<CatalogItem>>> GetItemsByName(
+        [AsParameters] PaginationRequest paginationRequest,
+        [AsParameters] CatalogServices services,
+        [Description("The name of the item to return")] string name,
+        CancellationToken cancellationToken = default)
+    {
+        return await GetAllItems(paginationRequest, services, name, null, null, cancellationToken);
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -377,7 +383,8 @@ public static class CatalogApi
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     public static async Task<Created> CreateItem(
         [AsParameters] CatalogServices services,
-        CatalogItem product)
+        CatalogItem product,
+        CancellationToken cancellationToken = default)
     {
         var item = new CatalogItem(product.Name)
         {
@@ -394,7 +401,7 @@ public static class CatalogApi
         item.Embedding = await services.CatalogAI.GetEmbeddingAsync(item);
 
         services.Context.CatalogItems.Add(item);
-        await services.Context.SaveChangesAsync();
+        await services.Context.SaveChangesAsync(cancellationToken);
 
         return TypedResults.Created($"/api/catalog/items/{item.Id}");
     }
@@ -403,7 +410,8 @@ public static class CatalogApi
         [AsParameters] CatalogServices services,
         [Description("The id of the catalog item to delete")] int id)
     {
-        var item = services.Context.CatalogItems.SingleOrDefault(x => x.Id == id);
+        var item = await services.Context.CatalogItems
+            .SingleOrDefaultAsync(x => x.Id == id);
 
         if (item is null)
         {

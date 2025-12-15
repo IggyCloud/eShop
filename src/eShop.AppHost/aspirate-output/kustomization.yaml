@@ -4,14 +4,7 @@ resources:
 - redis
 - eventbus
 - postgres
-- basket-api
 - catalog-api
-- ordering-api
-- order-processor
-- payment-processor
-- webhooks-api
-- webhooksclient
-- webapp
 - dashboard.yaml
 
 generatorOptions:

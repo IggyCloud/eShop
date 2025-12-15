@@ -8,7 +8,7 @@ generatorOptions:
 configMapGenerator:
 - name: redis-env
   literals:
-    - REDIS_PASSWORD=CPsnLeWDa1bdUZPm!6Sa3R
+    - REDIS_PASSWORD=WuVli4rt1HhLRzlMN6DiX0
     - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
     - OTEL_SERVICE_NAME=redis
 
