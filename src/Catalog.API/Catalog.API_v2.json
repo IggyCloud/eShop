@@ -497,6 +497,15 @@
             }
           },
           {
+            "name": "ExactTotal",
+            "in": "query",
+            "description": "Whether to compute an exact total (otherwise an estimate is returned)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
             "name": "name",
             "in": "query",
             "description": "The name of the item to return",
@@ -584,6 +593,15 @@
               "type": "integer",
               "format": "int32",
               "default": 0
+            }
+          },
+          {
+            "name": "ExactTotal",
+            "in": "query",
+            "description": "Whether to compute an exact total (otherwise an estimate is returned)",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           },
           {

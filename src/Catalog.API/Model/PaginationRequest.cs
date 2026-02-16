@@ -9,5 +9,9 @@ public record PaginationRequest(
 
     [property: Description("The index of the page of results to return")]
     [property: DefaultValue(0)]
-    int PageIndex = 0
+    int PageIndex = 0,
+
+    [property: Description("Whether to compute an exact total (otherwise an estimate is returned)")]
+    [property: DefaultValue(false)]
+    bool ExactTotal = false
 );

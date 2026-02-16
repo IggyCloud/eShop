@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -151,8 +152,9 @@ public static class CatalogApi
             root = root.Where(c => c.CatalogBrandId == brand);
         }
 
-        var totalItems = await root
-            .LongCountAsync(cancellationToken);
+        var totalItems = paginationRequest.ExactTotal
+            ? await root.LongCountAsync(cancellationToken)
+            : await GetEstimatedCatalogCountAsync(services.Context, cancellationToken);
 
         var itemsOnPage = await root
             .OrderBy(c => c.Name)
@@ -242,17 +244,19 @@ public static class CatalogApi
     public static async Task<Results<Ok<PaginatedItems<CatalogItem>>, RedirectToRouteHttpResult>> GetItemsBySemanticRelevanceV1(
         [AsParameters] PaginationRequest paginationRequest,
         [AsParameters] CatalogServices services,
-        [Description("The text string to use when search for related items in the catalog")] string text)
+        [Description("The text string to use when search for related items in the catalog")] string text,
+        CancellationToken cancellationToken = default)
 
     {
-        return await GetItemsBySemanticRelevance(paginationRequest, services, text);
+        return await GetItemsBySemanticRelevance(paginationRequest, services, text, cancellationToken);
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     public static async Task<Results<Ok<PaginatedItems<CatalogItem>>, RedirectToRouteHttpResult>> GetItemsBySemanticRelevance(
         [AsParameters] PaginationRequest paginationRequest,
         [AsParameters] CatalogServices services,
-        [Description("The text string to use when search for related items in the catalog"), Required, MinLength(1)] string text)
+        [Description("The text string to use when search for related items in the catalog"), Required, MinLength(1)] string text,
+        CancellationToken cancellationToken = default)
     {
         var pageSize = paginationRequest.PageSize;
         var pageIndex = paginationRequest.PageIndex;
@@ -271,9 +275,9 @@ public static class CatalogApi
         }
 
         // Get the total number of items
-        var totalItems = await services.Context.CatalogItems
-            .AsNoTracking()
-            .LongCountAsync();
+        var totalItems = paginationRequest.ExactTotal
+            ? await services.Context.CatalogItems.AsNoTracking().LongCountAsync(cancellationToken)
+            : await GetEstimatedCatalogCountAsync(services.Context, cancellationToken);
 
         // Get the next page of items, ordered by most similar (smallest distance) to the input search
         List<CatalogItem> itemsOnPage;
@@ -421,6 +425,33 @@ public static class CatalogApi
         services.Context.CatalogItems.Remove(item);
         await services.Context.SaveChangesAsync();
         return TypedResults.NoContent();
+    }
+
+    private static async Task<long> GetEstimatedCatalogCountAsync(CatalogContext context, CancellationToken cancellationToken)
+    {
+        const string sql = "SELECT reltuples::bigint FROM pg_class WHERE oid = 'public.\"Catalog\"'::regclass;";
+        var connection = context.Database.GetDbConnection();
+        var wasClosed = connection.State == ConnectionState.Closed;
+
+        if (wasClosed)
+        {
+            await connection.OpenAsync(cancellationToken);
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            return result is long l ? l : Convert.ToInt64(result ?? 0);
+        }
+        finally
+        {
+            if (wasClosed)
+            {
+                await connection.CloseAsync();
+            }
+        }
     }
 
     private static string GetImageMimeTypeFromImageFileExtension(string extension) => extension switch
