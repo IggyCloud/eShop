@@ -7,6 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddApplicationServices();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolver = new CatalogJsonContext();
+});
+
 builder.Services.AddProblemDetails();
 builder.Services.AddResponseCompression();
 
