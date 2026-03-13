@@ -1,8 +1,17 @@
-# eShop Reference Application - "AdventureWorks"
+# IggyCloud eShop - A Software Engineering Journal
 
-A reference .NET application implementing an e-commerce website using a services-based architecture using [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/).
+This repository is a specialized fork of the .NET eShop reference application, maintained as a practical laboratory for the **IggyCloud Software Engineering Journal**.
 
 ![eShop Reference Application architecture diagram](img/eshop_architecture.png)
+
+## About IggyCloud
+
+[IggyCloud.com](https://iggycloud.com) is a platform and [YouTube Channel](https://www.youtube.com/@IggyCloud) dedicated to deep-dives into high-performance backend systems. We use this codebase to empirically test:
+- **Performance Engineering**: Scaling APIs to thousands of RPS and managing high Virtual User (VU) loads.
+- **Database Optimization**: Mastering Postgres, pgvector, and horizontal scaling.
+- **Cloud-Native Architecture**: Transitioning from developer-focused orchestration (Aspire) to production-ready infrastructure (Terraform).
+
+All performance test results and architectural experiments are documented in the [Resources Evidence folder](../resources/evidence).
 
 ![eShop homepage screenshot](img/eshop_homepage.png)
 
