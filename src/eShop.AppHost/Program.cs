@@ -6,33 +6,31 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddForwardedHeaders();
 
-// The following services are commented out to speed up deployment for focusing on catalog-api.
+var prometheus = builder.AddContainer("prometheus", "prom/prometheus:latest")
+    .WithBindMount("./prometheus.yml", "/etc/prometheus/prometheus.yml")
+    .WithArgs("--config.file=/etc/prometheus/prometheus.yml", 
+              "--storage.tsdb.path=/prometheus/", 
+              "--web.console.libraries=/etc/prometheus/console_libraries",
+              "--web.console.templates=/etc/prometheus/consoles",
+              "--web.enable-lifecycle",
+              "--web.enable-remote-write-receiver")
+    .WithEndpoint(9090, 9090, "http")
+    .WithExternalHttpEndpoints()
+    .WithVolume("prometheus-data", "/prometheus")
+    .WithLifetime(ContainerLifetime.Persistent);
 
-// var prometheus = builder.AddContainer("prometheus", "prom/prometheus:latest")
-//     .WithBindMount("./prometheus.yml", "/etc/prometheus/prometheus.yml")
-//     .WithArgs("--config.file=/etc/prometheus/prometheus.yml", 
-//               "--storage.tsdb.path=/prometheus/", 
-//               "--web.console.libraries=/etc/prometheus/console_libraries",
-//               "--web.console.templates=/etc/prometheus/consoles",
-//               "--web.enable-lifecycle",
-//               "--web.enable-remote-write-receiver")
-//     .WithEndpoint(9090, 9090, "http")
-//     .WithExternalHttpEndpoints()
-//     .WithVolume("prometheus-data", "/prometheus")
-//     .WithLifetime(ContainerLifetime.Persistent);
+var grafana = builder.AddContainer("grafana", "grafana/grafana:latest")
+    .WithEnvironment("GF_SECURITY_ADMIN_PASSWORD", "admin123")
+    .WithEnvironment("GF_INSTALL_PLUGINS", "grafana-piechart-panel")
+    .WithEndpoint(3000, 3000, "http")
+    .WithExternalHttpEndpoints()
+    .WithVolume("grafana-data", "/var/lib/grafana")
+    .WithBindMount("./grafana-datasources.yml", "/etc/grafana/provisioning/datasources/datasources.yml")
+    .WithBindMount("./grafana-dashboards.yml", "/etc/grafana/provisioning/dashboards/dashboards.yml")
+    .WithBindMount("./k6-dashboard.json", "/etc/grafana/dashboards/k6-dashboard.json")
+    .WithLifetime(ContainerLifetime.Persistent);
 
-// var grafana = builder.AddContainer("grafana", "grafana/grafana:latest")
-//     .WithEnvironment("GF_SECURITY_ADMIN_PASSWORD", "admin123")
-//     .WithEnvironment("GF_INSTALL_PLUGINS", "grafana-piechart-panel")
-//     .WithEndpoint(3000, 3000, "http")
-//     .WithExternalHttpEndpoints()
-//     .WithVolume("grafana-data", "/var/lib/grafana")
-//     .WithBindMount("./grafana-datasources.yml", "/etc/grafana/provisioning/datasources/datasources.yml")
-//     .WithBindMount("./grafana-dashboards.yml", "/etc/grafana/provisioning/dashboards/dashboards.yml")
-//     .WithBindMount("./k6-dashboard.json", "/etc/grafana/dashboards/k6-dashboard.json")
-//     .WithLifetime(ContainerLifetime.Persistent);
-
-// var redis = builder.AddRedis("redis");
+var redis = builder.AddRedis("redis");
 var rabbitMq = builder.AddRabbitMQ("eventbus")
     .WithLifetime(ContainerLifetime.Persistent);
 var postgres = builder.AddPostgres("postgres")
@@ -44,18 +42,18 @@ var postgres = builder.AddPostgres("postgres")
     .WithEnvironment("POSTGRES_INITDB_ARGS", "--auth-host=md5 --auth-local=md5");
 
 var catalogDb = postgres.AddDatabase("catalogdb");
-// var identityDb = postgres.AddDatabase("identitydb"); // Identity disabled
-// var orderDb = postgres.AddDatabase("orderingdb");
-// var webhooksDb = postgres.AddDatabase("webhooksdb");
+var identityDb = postgres.AddDatabase("identitydb"); // Identity disabled
+var orderDb = postgres.AddDatabase("orderingdb");
+var webhooksDb = postgres.AddDatabase("webhooksdb");
 
 var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
 // Services
-// var basketApi = builder.AddProject<Projects.Basket_API>("basket-api")
-//     .WithReference(redis)
-//     .WithReference(rabbitMq).WaitFor(rabbitMq)
-//     .WithEnvironment("DisableAuth", "true");
-// redis.WithParentRelationship(basketApi);
+var basketApi = builder.AddProject<Projects.Basket_API>("basket-api")
+    .WithReference(redis)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithEnvironment("DisableAuth", "true");
+redis.WithParentRelationship(basketApi);
 
 var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
@@ -63,36 +61,36 @@ var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
     .WithEnvironment("DisableAuth", "true")
     .WithExternalHttpEndpoints();
 
-// var orderingApi = builder.AddProject<Projects.Ordering_API>("ordering-api")
-//     .WithReference(rabbitMq).WaitFor(rabbitMq)
-//     .WithReference(orderDb).WaitFor(orderDb)
-//     .WithHttpHealthCheck("/health")
-//     .WithEnvironment("DisableAuth", "true");
+var orderingApi = builder.AddProject<Projects.Ordering_API>("ordering-api")
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(orderDb).WaitFor(orderDb)
+    .WithHttpHealthCheck("/health")
+    .WithEnvironment("DisableAuth", "true");
 
-// builder.AddProject<Projects.OrderProcessor>("order-processor")
-//     .WithReference(rabbitMq).WaitFor(rabbitMq)
-//     .WithReference(orderDb)
-//     .WaitFor(orderingApi)
-//     .WithEnvironment("DisableAuth", "true");
+builder.AddProject<Projects.OrderProcessor>("order-processor")
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(orderDb)
+    .WaitFor(orderingApi)
+    .WithEnvironment("DisableAuth", "true");
 
-// builder.AddProject<Projects.PaymentProcessor>("payment-processor")
-//     .WithReference(rabbitMq).WaitFor(rabbitMq)
-//     .WithEnvironment("DisableAuth", "true");
+builder.AddProject<Projects.PaymentProcessor>("payment-processor")
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithEnvironment("DisableAuth", "true");
 
-// var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
-//     .WithReference(rabbitMq).WaitFor(rabbitMq)
-//     .WithReference(webhooksDb)
-//     .WithEnvironment("DisableAuth", "true");
+var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(webhooksDb)
+    .WithEnvironment("DisableAuth", "true");
 
 // Apps
-// var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
-//     .WithExternalHttpEndpoints()
-//     .WithUrls(c => c.Urls.ForEach(u => u.DisplayText = $"Online Store ({u.Endpoint?.EndpointName})"))
-//     .WithReference(basketApi)
-//     .WithReference(catalogApi)
-//     .WithReference(orderingApi)
-//     .WithReference(rabbitMq).WaitFor(rabbitMq)
-//     .WithEnvironment("DisableAuth", "true");
+var webApp = builder.AddProject<Projects.WebApp>("webapp", launchProfileName)
+    .WithExternalHttpEndpoints()
+    .WithUrls(c => c.Urls.ForEach(u => u.DisplayText = $"Online Store ({u.Endpoint?.EndpointName})"))
+    .WithReference(basketApi)
+    .WithReference(catalogApi)
+    .WithReference(orderingApi)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithEnvironment("DisableAuth", "true");
 
 // Identity has a reference to all of the apps for callback urls, this is a cyclic reference
 // Identity API disabled

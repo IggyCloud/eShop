@@ -10,6 +10,11 @@ namespace eShop.Catalog.API.Infrastructure;
 [JsonSerializable(typeof(IEnumerable<CatalogItem>))]
 [JsonSerializable(typeof(IEnumerable<CatalogBrand>))]
 [JsonSerializable(typeof(IEnumerable<CatalogType>))]
+[JsonSerializable(typeof(List<CatalogItem>))]
+[JsonSerializable(typeof(List<CatalogBrand>))]
+[JsonSerializable(typeof(List<CatalogType>))]
+[JsonSerializable(typeof(int[]))]
+[JsonSerializable(typeof(byte[]))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false,

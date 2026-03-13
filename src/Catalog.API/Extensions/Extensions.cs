@@ -1,6 +1,6 @@
 using eShop.Catalog.API.Services;
 using Microsoft.EntityFrameworkCore;
-using MR.EntityFrameworkCore.Sentries;
+// using MR.EntityFrameworkCore.Sentries;
 
 public static class Extensions
 {
@@ -16,13 +16,13 @@ public static class Extensions
 
         var configuration = builder.Configuration;
         var primaryConnectionString = configuration.GetConnectionString("catalogdb");
-        var replicaConnectionString = configuration.GetConnectionString("catalogdb_replica");
+        // var replicaConnectionString = configuration.GetConnectionString("catalogdb_replica");
 
         // If a replica connection string is provided, configure the read/write splitting interceptor.
-        if (!string.IsNullOrEmpty(replicaConnectionString))
-        {
-            builder.Services.AddSingleton(_ => new ReadWriteInterceptor(replicaConnectionString));
-        }
+        // if (!string.IsNullOrEmpty(replicaConnectionString))
+        // {
+        //     builder.Services.AddSingleton(_ => new ReadWriteInterceptor(replicaConnectionString));
+        // }
 
         // Enable DbContext pooling for high concurrent load performance
         builder.Services.AddDbContextPool<CatalogContext>((serviceProvider, options) =>
@@ -36,11 +36,11 @@ public static class Extensions
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
             // Add the read/write splitting interceptor if it's available.
-            var readWriteInterceptor = serviceProvider.GetService<ReadWriteInterceptor>();
-            if (readWriteInterceptor is not null)
-            {
-                options.AddInterceptors(readWriteInterceptor);
-            }
+            // var readWriteInterceptor = serviceProvider.GetService<ReadWriteInterceptor>();
+            // if (readWriteInterceptor is not null)
+            // {
+            //     options.AddInterceptors(readWriteInterceptor);
+            // }
         }, poolSize: 300);
 
         // REVIEW: This is done for development ease but shouldn't be here in production
