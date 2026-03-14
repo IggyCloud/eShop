@@ -1,6 +1,7 @@
 using eShop.Catalog.API.Services;
 using eShop.Catalog.API.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 // using MR.EntityFrameworkCore.Sentries;
 
 public static class Extensions
@@ -16,18 +17,34 @@ public static class Extensions
         }
 
         var configuration = builder.Configuration;
-        var primaryConnectionString = configuration.GetConnectionString("catalogdb");
+        var primaryConnectionString = configuration.GetConnectionString("catalogdb") ?? throw new InvalidOperationException("ConnectionString 'catalogdb' not found.");
+        var replicaConnectionString = configuration.GetConnectionString("catalogdb_replica") ?? primaryConnectionString;
 
-        // Enable DbContext pooling for high concurrent load performance
-        builder.Services.AddDbContextPool<CatalogContext>((serviceProvider, options) =>
+        // Register NpgsqlDataSources with Vector support
+        builder.Services.AddNpgsqlDataSource(primaryConnectionString, npgsqlBuilder => npgsqlBuilder.UseVector());
+        builder.Services.AddNpgsqlDataSource(replicaConnectionString, npgsqlBuilder => npgsqlBuilder.UseVector(), serviceKey: "replica");
+
+        // Enable Primary DbContext pooling (Writes)
+        builder.Services.AddDbContextPool<CatalogContext>((sp, options) =>
         {
-            options.UseNpgsql(primaryConnectionString, npgsqlOptions =>
+            options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>(), npgsqlOptions =>
             {
-                npgsqlOptions.UseVector();
+                npgsqlOptions.EnableRetryOnFailure(3, TimeSpan.FromSeconds(2), null);
+                npgsqlOptions.CommandTimeout(30);
+            });
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        }, poolSize: 100);
+
+        // Enable Replica DbContext pooling (Reads)
+        builder.Services.AddDbContextPool<CatalogReadContext>((sp, options) =>
+        {
+            options.UseNpgsql(sp.GetRequiredKeyedService<NpgsqlDataSource>("replica"), npgsqlOptions =>
+            {
                 npgsqlOptions.EnableRetryOnFailure(3, TimeSpan.FromSeconds(2), null);
                 npgsqlOptions.CommandTimeout(30);
             });
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         }, poolSize: 300);
 
         // REVIEW: This is done for development ease but shouldn't be here in production

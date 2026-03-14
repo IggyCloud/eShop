@@ -2,13 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 
 public class CatalogServices(
-    CatalogContext context,
+    [FromServices] CatalogContext context,
+    [FromServices] CatalogReadContext readContext,
     [FromServices] ICatalogAI catalogAI,
     IOptions<CatalogOptions> options,
     ILogger<CatalogServices> logger,
     [FromServices] ICatalogIntegrationEventService eventService)
 {
     public CatalogContext Context { get; } = context;
+    public CatalogReadContext ReadContext { get; } = readContext;
     public ICatalogAI CatalogAI { get; } = catalogAI;
     public IOptions<CatalogOptions> Options { get; } = options;
     public ILogger<CatalogServices> Logger { get; } = logger;

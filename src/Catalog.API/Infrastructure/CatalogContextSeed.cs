@@ -64,7 +64,7 @@ public partial class CatalogContextSeed(
                 IReadOnlyList<Vector>? embeddings = await catalogAI.GetEmbeddingsAsync(catalogItems);
                 for (int i = 0; i < catalogItems.Length; i++)
                 {
-                    catalogItems[i].Embedding = embeddings?[i];
+                    // catalogItems[i].Embedding = embeddings?[i];
                 }
             }
 

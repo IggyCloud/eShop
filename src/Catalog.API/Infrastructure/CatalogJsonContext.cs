@@ -15,6 +15,9 @@ namespace eShop.Catalog.API.Infrastructure;
 [JsonSerializable(typeof(List<CatalogType>))]
 [JsonSerializable(typeof(int[]))]
 [JsonSerializable(typeof(byte[]))]
+[JsonSerializable(typeof(bool))]
+[JsonSerializable(typeof(int))]
+[JsonSerializable(typeof(long))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false,

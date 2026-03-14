@@ -7,7 +7,7 @@
 /// </remarks>
 public class CatalogContext : DbContext
 {
-    public CatalogContext(DbContextOptions<CatalogContext> options, IConfiguration configuration) : base(options)
+    public CatalogContext(DbContextOptions options, IConfiguration configuration) : base(options)
     {
     }
 
