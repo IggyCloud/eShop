@@ -15,6 +15,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Pyroscope.OpenTelemetry;
+using Npgsql;
 
 namespace eShop.ServiceDefaults;
 
@@ -89,7 +90,8 @@ public static partial class Extensions
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
-                    .AddRuntimeInstrumentation();
+                    .AddRuntimeInstrumentation()
+                    .AddMeter("Npgsql");
 
                 if (!perfMode)
                 {
